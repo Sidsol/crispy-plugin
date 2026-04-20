@@ -1,7 +1,7 @@
 ---
 name: crispy-clarify
 description: "CRISPY Phase C: Clarify requirements and produce a feature specification"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell"]
+tools: ["bash", "edit", "view", "glob", "grep", "powershell", "workiq-ask_work_iq", "workiq-accept_eula"]
 ---
 
 # CRISPY Phase C — Clarify
@@ -98,3 +98,26 @@ Produce `crispy-docs/specs/NNN-feature-name/spec.md` with this structure:
 - Prioritize user stories using P1/P2/P3 based on user input.
 - Every acceptance criterion must be testable (Given/When/Then).
 - After writing spec.md, summarize it back to the user and ask for corrections.
+
+## WorkIQ — Microsoft 365 Context
+
+You have access to **WorkIQ** (`workiq-ask_work_iq`), which can query the user's Microsoft 365 data — emails, meetings, Teams chats, and OneDrive/SharePoint files — for relevant context.
+
+**Proactively offer to use WorkIQ early in the Clarify phase.** Many feature requests originate from emails, meeting notes, or shared design docs. Pulling that context up front leads to a far more accurate spec.
+
+When to suggest it:
+- The user mentions a stakeholder, project name, customer, ticket, or meeting ("the discussion with X", "the proposal we sent", "the spec doc in SharePoint").
+- Business context, requested-by, or acceptance criteria are vague.
+- A design doc, PRD, or email thread likely exists but the user hasn't pasted it.
+
+How to use it:
+1. Ask the user: *"Want me to check your M365 (emails, meetings, files) for related context on this feature?"*
+2. If yes, call `workiq-ask_work_iq` with focused questions, e.g.:
+   - *"Find recent emails or meetings about [feature/project name]."*
+   - *"Summarize any design docs or PRDs related to [topic]."*
+   - *"What did [person] say about [topic] in recent messages?"*
+3. If the user provides a OneDrive/SharePoint URL, pass it in `fileUrls` for direct file context.
+4. If the tool reports the EULA isn't accepted, tell the user and ask them to confirm acceptance — only call `workiq-accept_eula` after explicit user consent.
+5. Cite the source (email subject, meeting title, file name) when incorporating findings into spec.md so requirements stay traceable.
+
+Treat WorkIQ findings as **input to clarifying questions**, not as the spec itself — always confirm with the user before locking anything in.

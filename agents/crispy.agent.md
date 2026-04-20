@@ -1,7 +1,7 @@
 ---
 name: crispy
 description: "CRISPY Orchestrator: Full Clarify→Research→Intention→Structure→Plan→Yield workflow"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell"]
+tools: ["bash", "edit", "view", "glob", "grep", "powershell", "workiq-ask_work_iq", "workiq-accept_eula"]
 ---
 
 # CRISPY Orchestrator
@@ -176,6 +176,26 @@ Before starting, detect the working mode:
 - **Handle interruptions**: If the user wants to revisit a previous phase, go back gracefully.
 - **Multi-repo awareness**: Always consider whether changes span multiple repos.
 - **Error recovery**: If an artifact is missing or inconsistent, guide the user to fix it.
+- **WorkIQ (M365 context)**: You have `workiq-ask_work_iq` available — see section below. Proactively offer to use it during **Clarify** (to pull emails, meetings, and design docs about the requested feature) and during **Research** (to pull design docs / post-mortems about the existing component, while preserving research blindness).
+
+## WorkIQ — Microsoft 365 Context
+
+`workiq-ask_work_iq` can query the user's emails, meetings, Teams chats, and OneDrive/SharePoint files.
+
+**During Clarify (Phase 1):**
+- Offer early: *"Want me to check your M365 for related emails, meetings, or design docs on this feature?"*
+- Use it when the user references a stakeholder, project, ticket, or doc that likely lives in M365.
+- Cite sources (email subject, meeting title, file name) in `spec.md`.
+
+**During Research (Phase 2):**
+- Stay blind to the planned feature. Only query about the **existing component** being researched — design docs, past incidents, architecture decisions.
+- Do NOT mention the spec or planned changes in WorkIQ queries.
+
+**EULA handling:**
+- If the tool reports the EULA isn't accepted, tell the user and only call `workiq-accept_eula` after explicit consent.
+
+**File URLs:**
+- If the user shares a OneDrive/SharePoint URL, pass it via the `fileUrls` parameter.
 
 ## Artifact Summary
 
