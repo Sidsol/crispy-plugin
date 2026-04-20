@@ -1,0 +1,31 @@
+{
+  "hooks": [
+    {
+      "type": "preToolExecution",
+      "matcher": "(?:bash|powershell).*git\\s+(?:checkout|switch|branch)",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "git status --porcelain 2>/dev/null || git status --porcelain 2>$null",
+          "description": "Check for uncommitted changes before any branch operation"
+        }
+      ]
+    },
+    {
+      "type": "preToolExecution",
+      "matcher": "(?:bash|powershell).*git\\s+checkout\\s+-b",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "git branch --show-current 2>/dev/null || git branch --show-current 2>$null",
+          "description": "Verify current branch before creating a new feature branch"
+        },
+        {
+          "type": "command",
+          "command": "git fetch origin develop 2>/dev/null || git fetch origin develop 2>$null",
+          "description": "Fetch latest develop before branching"
+        }
+      ]
+    }
+  ]
+}
