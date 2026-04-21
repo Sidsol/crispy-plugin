@@ -6,7 +6,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "git status --porcelain 2>/dev/null || git status --porcelain 2>$null",
+          "command": "git status --porcelain 2>$null",
           "description": "Check for uncommitted changes before any branch operation"
         }
       ]
@@ -17,12 +17,12 @@
       "hooks": [
         {
           "type": "command",
-          "command": "git branch --show-current 2>/dev/null || git branch --show-current 2>$null",
+          "command": "git branch --show-current 2>$null",
           "description": "Verify current branch before creating a new feature branch"
         },
         {
           "type": "command",
-          "command": "git fetch origin develop 2>/dev/null || git fetch origin develop 2>$null",
+          "command": "git fetch origin develop 2>$null",
           "description": "Fetch latest develop before branching"
         }
       ]

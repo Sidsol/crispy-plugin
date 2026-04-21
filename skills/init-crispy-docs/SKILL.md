@@ -31,14 +31,15 @@ Scan the `crispy-docs/specs/` directory for existing feature folders:
 crispy-docs/
 └── specs/
     └── NNN-feature-name/
-        ├── spec.md          (empty placeholder)
-        ├── research.md      (empty placeholder)
-        ├── intent.md        (empty placeholder)
-        ├── outline.md       (empty placeholder)
-        ├── plan.md          (empty placeholder)
-        ├── tasks.md         (empty placeholder)
-        ├── checklist.md     (empty placeholder)
-        └── contracts/       (empty directory)
+        ├── spec.md               (empty placeholder)
+        ├── research.md           (empty placeholder)
+        ├── intent.md             (empty placeholder)
+        ├── outline.md            (empty placeholder)
+        ├── plan.md               (empty placeholder)
+        ├── tasks.md              (empty placeholder)
+        ├── checklist.md          (empty placeholder)
+        ├── review-gates.yaml     (empty gate placeholder)
+        └── contracts/            (empty directory)
 ```
 
 Each placeholder file should contain a YAML front matter header:
@@ -55,6 +56,15 @@ created: {YYYY-MM-DD}
 
 > This document has not been started yet. Use the `create-{type}` skill to generate it.
 ```
+
+The `review-gates.yaml` placeholder uses a different format:
+
+```yaml
+# Review gates — populated by crispy orchestrator after rubber-duck reviews
+gates: {}
+```
+
+This file is required by `crispy-yield` and `crispy-implement`. Creating it at init time prevents a "missing review-gates.yaml" blocker during Yield validation.
 
 ### 4. Handle Single-Repo .gitignore
 

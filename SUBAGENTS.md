@@ -156,11 +156,23 @@ These are floors, not ceilings: a finding may still be `high` for other reasons.
 
 | Failure | Sub-agent returns | Orchestrator behavior |
 |---|---|---|
-| Tool/runtime error (one shot) | `status: failed` + reason | Retry once with same prompt. |
+| Tool/runtime error (one shot) | `status: failed` + reason | Wait 5–10 seconds, then retry once with same prompt. |
 | Persistent failure | `status: failed` after retry | Surface to user with the failure summary; do not silently fall back. |
 | Missing input | `status: partial` + `next_actions: [provide X]` | Provide the missing input and re-spawn, or ask user. |
 | Reviewer found `high` | `status: ok`, `findings[*].severity: high` | Block; ask user how to proceed. |
 | Sub-agent went out of scope | `status: ok` but produced unexpected artifacts | Discard out-of-scope output, log, re-spawn with tightened guardrails. |
+
+**Backoff rule:** The 5–10 second wait before retry helps avoid transient failures caused by rate limiting, temporary network issues, or resource contention. The wait applies to both sub-agent spawns and direct tool/command invocations within skills (e.g., the flake retry in `run-tdd-slice` step 4).
+
+## 8.1 Timeout Policy
+
+| Spawn mode | Timeout | Action on timeout |
+|---|---|---|
+| **Sync** | 10 minutes wall-clock | Treat as `status: failed`. Apply the §8 retry rule (with backoff). If the retry also times out, surface to the user. |
+| **Background** | 15 minutes wall-clock | Check progress via `read_agent`. If no new tool calls since last check, treat as stuck → cancel the agent, treat as `status: failed`, apply §8 retry. |
+| **Fleet wave** | 20 minutes per wave | If any slice in the wave exceeds 20 minutes, cancel it. Allow remaining slices to complete. Surface the timed-out slice as `status: failed` with a timeout reason. |
+
+Timeouts are safety nets for infrastructure failures (hung processes, unresponsive LLM). They should rarely trigger under normal operation. If a phase routinely approaches the timeout, the work should be split into smaller units.
 
 ---
 

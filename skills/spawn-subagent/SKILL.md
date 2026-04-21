@@ -63,6 +63,8 @@ When parsing:
 
 If the block is missing or malformed, treat the spawn as `failed` and retry once (§8).
 
+If the sub-agent has not returned within the §8.1 timeout window, treat as `status: failed` and apply the retry rule with backoff.
+
 ### 5. Honor the failure table
 
 Apply `SUBAGENTS.md` §8 verbatim. Do not silently fall back; do not loop forever.
