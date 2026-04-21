@@ -34,7 +34,9 @@ The six mandatory blocks, in order:
 5. **Output contract** — point to the `crispy-result` YAML schema; do not invent your own.
 6. **Failure handling** — what to return on missing inputs, tool errors, or out-of-scope discoveries.
 
-### 2. Choose background vs sync (`SUBAGENTS.md` §4)
+**Optional block 7 — Project Conventions:** If the target repo contains an `AGENTS.md` file at the root, read it and extract conventions (language, framework, test runner, naming rules, import style). If no `AGENTS.md` exists but a `crispy-result` from `crispy-research` is available, extract the tech stack from `metadata` or from `research.md`'s "Architecture Overview" section. Populate the `## Project Conventions` block in the skeleton with these values. If neither source is available, omit the block entirely.
+
+### 2. Choose background vs sync(`SUBAGENTS.md` §4)
 
 Decide before spawning:
 

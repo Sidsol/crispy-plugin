@@ -13,6 +13,8 @@ All sub-agent spawns inside this skill go through the `spawn-subagent` skill and
 
 This skill **assumes the caller has enforced the clean-worktree precondition** before invoking it (see `crispy-implement.agent.md` → "Worktree Discipline"). The skill will not check `git status` itself, will not stash, and will not commit.
 
+When `worktree_path` is provided (fleet mode), all file paths in sub-agent prompts are resolved relative to that worktree. The skill itself does not create or remove worktrees — that remains the caller's responsibility.
+
 On any failure (test-author fails, implementer fails, build/lint/tests fail, rubber-duck returns `severity: high`), the **caller** is responsible for rollback (`git reset --hard HEAD`) and for the per-slice checkpoint commit on success. This skill itself does NOT modify git state — it only edits source/test files via its sub-agents and runs verification commands.
 
 ## Inputs
@@ -22,6 +24,7 @@ On any failure (test-author fails, implementer fails, build/lint/tests fail, rub
 - `contracts` — list of contract paths from `C:\repos\crispy-plugin\crispy-docs\<feature>\contracts\` that this slice must satisfy.
 - `plan_excerpt` — the relevant slice block from `C:\repos\crispy-plugin\crispy-docs\<feature>\plan.md` (file-level technical context, including which test files to write).
 - `fast_mode` — optional boolean flag (default `false`). See "Fast mode opt-out" below.
+- `worktree_path` — optional absolute path to the git worktree for this slice (used in fleet mode). Defaults to the repo root when omitted (sequential mode). When provided, ALL sub-agent prompts (`test-author`, `implementer`, `rubber-duck`) MUST use this path as their working directory for file reads and writes. The `slice_section` file references are relative to this worktree, not the main checkout.
 
 ## Process
 
@@ -34,7 +37,7 @@ Use the prompt skeleton — all six blocks. Key contents:
 - **Role**: `test-author`.
 - **Goal**: write failing tests for slice {N} that encode its checkpoint criteria and contracts.
 - **Inputs / MUST READ**: `slice_section`, every path in `contracts`, the `plan_excerpt`. **MUST NOT READ**: existing implementation files for the slice (so tests describe behavior, not current code).
-- **Scope guardrails — May**: create new test files at the paths declared in `plan.md`. **Must NOT**: modify production code, modify other slices' tests, spawn other sub-agents.
+- **Scope guardrails — May**: create new test files at the paths declared in `plan.md` (resolved relative to `worktree_path` if provided, else repo root). **Must NOT**: modify production code, modify other slices' tests, spawn other sub-agents.
 - **Output contract**: standard `crispy-result` (§3) with `artifact_path` set to the test directory and `metadata.test_files: [...]` listing every file written.
 - **Failure handling**: per template defaults.
 
@@ -67,7 +70,7 @@ Skeleton fields:
 - **Role**: `implementer`.
 - **Goal**: write the minimum production code to make the failing tests for slice {N} pass.
 - **Inputs / MUST READ**: the failing test files (paths from step 1), `slice_section`, `contracts`, `plan_excerpt`.
-- **Scope guardrails — May**: create/modify production files within the slice's declared file scope from `plan.md`. **Must NOT**: modify any test file (that breaks the TDD invariant), modify files outside the slice scope, spawn other sub-agents.
+- **Scope guardrails — May**: create/modify production files within the slice's declared file scope from `plan.md` (resolved relative to `worktree_path` if provided, else repo root). **Must NOT**: modify any test file (that breaks the TDD invariant), modify files outside the slice scope, spawn other sub-agents.
 - **Output contract**: `crispy-result` with `metadata.changed_files: [...]`.
 - **Failure handling**: per template defaults.
 
@@ -88,7 +91,7 @@ Skeleton fields:
 
 - **Role**: `rubber-duck` (reviewer).
 - **Goal**: review the slice {N} diff against `spec.md`, `intent.md`, and the slice's contracts; classify findings.
-- **Inputs / MUST READ**: the diff (changed_files from step 3 + test_files from step 1), `spec.md`, `intent.md`, `contracts`, `slice_section`.
+- **Inputs / MUST READ**: the diff (changed_files from step 3 + test_files from step 1, resolved relative to `worktree_path` if provided), `spec.md`, `intent.md`, `contracts`, `slice_section`.
 - **Scope guardrails — May**: read-only analysis, return findings. **Must NOT**: edit code, spawn other sub-agents (only the orchestrator gates — §10).
 - **Output contract**: `findings[]` is **required** (§3). Severity values must come from the §6 vocabulary: `high` / `medium` / `low` only — no `nit`, `critical`, or emoji (§10).
 - **Failure handling**: per template defaults.
@@ -120,6 +123,7 @@ metadata:
   fast_mode: {true|false}
   test_files: [...]
   changed_files: [...]
+  worktree_path: {worktree_path or null}
 ```
 
 Gating rules the caller will apply (§6):

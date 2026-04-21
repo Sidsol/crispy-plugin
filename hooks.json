@@ -1,6 +1,16 @@
 {
   "hooks": [
     {
+      "type": "subagentStart",
+      "hooks": [
+        {
+          "type": "message",
+          "message": "## CRISPY Protocol Reminder\n\nYou are operating under the CRISPY sub-agent protocol (`SUBAGENTS.md`).\n\n**Return shape:** End your final message with a fenced ```crispy-result``` block (§3):\n```yaml\nstatus: ok | partial | failed\nagent: <your-agent-name>\nartifact_path: <path or null>\nsummary: |\n  <2-6 line summary>\nfindings: []\nnext_actions: []\nmetadata: {}\n```\n\n**Severity vocabulary** (§6): `high` (blocks), `medium` (append & continue), `low` (append & continue). No other words (`nit`, `critical`, emoji) are permitted.\n\n**Failure handling** (§8): On tool error → wait 5-10s, retry once. On persistent failure → return `status: failed`. On missing input → return `status: partial` with `next_actions: [provide X]`.\n\n**Anti-patterns** (§10): Do not re-read artifacts already summarized in a `crispy-result`. Do not spawn `rubber-duck` yourself (only the orchestrator gates). Do not write artifacts the orchestrator didn't authorize.",
+          "description": "Inject CRISPY protocol context into every sub-agent prompt"
+        }
+      ]
+    },
+    {
       "type": "preToolExecution",
       "matcher": "(?:bash|powershell).*git\\s+(?:checkout|switch|branch)",
       "hooks": [

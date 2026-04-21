@@ -82,6 +82,22 @@ In autopilot:
 - `crispy-branch` runs **non-interactively** with sensible defaults (auto-stash, default `feature/NNN-feature-name`, skip repos with conflicts).
 - `crispy-implement` auto-recommends **`autopilot_fleet`** when the slice graph shows ≥ 2 independent slices.
 
+### Using with `/fleet`
+
+CRISPY has its own parallel execution (`mode:fleet` on `crispy-implement`) that is distinct from Copilot CLI's native `/fleet` command:
+
+| Feature | `crispy-implement mode:fleet` | Copilot CLI `/fleet` |
+|:--------|:------------------------------|:---------------------|
+| Task splitting | DAG-aware from slice dependency graph | AI auto-splits from prompt |
+| File isolation | `git worktree` per slice (no silent overwrites) | None (last writer wins) |
+| Conflict detection | Pre-wave file-set check + post-wave diff verification | None |
+| Rollback | Per-slice `git reset --hard` | None |
+
+**Recommendation:**
+- Use `@crispy-implement mode:fleet` for slice execution — it has worktree isolation and conflict detection.
+- Use `/fleet` for the planning phases if you want to parallelize independent work (e.g., multi-repo scans, bulk documentation generation) where file conflicts aren't a concern.
+- Do NOT use `/fleet @crispy-implement` — let CRISPY manage its own parallelism via the slice dependency graph.
+
 ## Artifact Output
 
 Artifacts are stored in a `crispy-docs` directory:

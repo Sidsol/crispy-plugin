@@ -74,6 +74,21 @@ git -C <repo> status --porcelain
 
 If any affected repo's output is non-empty, REFUSE to proceed. Emit a `crispy-result` with `status: failed` and a `severity: high` finding listing the dirty files per repo. Do NOT attempt to stash, reset, or otherwise mutate the user's worktree.
 
+### Worktree hygiene (stale cleanup)
+
+Before the clean-worktree check, scan for orphaned worktrees and branches from previous interrupted runs:
+
+```powershell
+git -C <repo> worktree list --porcelain
+```
+
+If any worktree path matches the pattern `*-slice-*` AND is not part of the current run:
+
+- **Autopilot:** auto-remove the orphaned worktree (`git -C <repo> worktree remove <path> --force`) and delete the orphaned branch (`git -C <repo> branch -D <branch>`). Log each removal in the checkpoint summary.
+- **Interactive:** list the orphaned worktrees and ask the user whether to clean them up before proceeding.
+
+If removal fails (e.g., locked files), emit a `severity: medium` finding and continue — do not block the run.
+
 ### Per-slice checkpoint commit
 
 After a slice completes successfully — i.e. test-author tests written (if not `fast_mode`) AND build/lint/tests pass AND `rubber-duck` returns no `severity: high` findings — the orchestrator commits the slice's changes:
@@ -110,6 +125,16 @@ git -C <repo> checkout feature/NNN-name
 git -C <repo> merge --no-ff feature/NNN-name-slice-<N>
 git -C <repo> worktree remove ..\<repo>-slice-<N>
 ```
+
+If `git merge --no-ff` produces a conflict:
+
+1. Abort the merge: `git -C <repo> merge --abort`
+2. Record the conflicting files via `git -C <repo> diff --name-only --diff-filter=U`
+3. Surface a `severity: high` finding listing the conflicting files, the two slice branches involved, and recommend re-running those slices sequentially
+4. Continue merging remaining non-conflicting slice branches in the wave
+5. Do NOT attempt auto-resolution — the user must decide how to reconcile
+
+The worktree for the failed merge is NOT removed — leave it in place so the user can inspect and manually resolve if desired.
 
 If `git worktree add` fails (e.g., the installed git is too old to support worktrees, or the path is locked), **fall back to sequential mode for that wave only** and announce the fallback in the wave's checkpoint summary. Do not abort the run.
 
@@ -204,10 +229,13 @@ For the current wave candidates (slices with all `depends_on` satisfied and not 
 
 Each `run-tdd-slice` invocation in the wave is spawned in parallel (background). Record each agent ID. Do not spawn `test-author`/`implementer`/`rubber-duck` directly from this orchestrator — that is the skill's job (`SUBAGENTS.md` §10: orchestrator does not bypass the skill's contract).
 
+Pass `worktree_path` set to the worktree directory created in "Fleet mode worktrees" (e.g., `..\<repo>-slice-<N>`) so the skill's sub-agents write to the isolated worktree, not the main checkout.
+
 ### Gating in a wave
 
 - Wait for the entire wave to drain before reading results — partial reads complicate the `tasks.md` write order.
 - After the wave, apply `SUBAGENTS.md` §6 to every returned `crispy-result`. Any `high` finding blocks the next wave.
+- **Post-wave file overlap check** (defense in depth): before merging slice branches back to the feature branch, compute the actual changed-file set per slice via `git -C <worktree> diff --name-only HEAD~1` for each slice branch. If any two slices in the wave modified the same file, **do not merge**. Instead, surface a `severity: high` finding listing the overlapping files and the conflicting slices. Recommend re-running those slices sequentially. This catches conflicts that `task_graph[*].files` missed.
 - If any slice in the wave returns `status: failed`, surface that failure with the others' results intact; do not silently continue (`SUBAGENTS.md` §8).
 
 ## Failure Handling

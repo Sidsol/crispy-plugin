@@ -71,7 +71,7 @@ Write to the feature folder:
 | 3     | ...  | ...   | S/M/L      | [1]        | true           |
 | ...   | ...  | ...   | ...        | ...        | ...            |
 
-`Depends On` is a list of phase numbers (empty list `[]` if none). `Parallelizable` is `true` when the slice has no pending dependencies that block a sibling slice from running in the same wall-clock window.
+`Depends On` is a list of phase numbers (empty list `[]` if none). `Parallelizable` is a **static hint** indicating this slice is a candidate for parallel execution — `true` when the slice has at least one sibling whose dependencies don't create a serial bottleneck. The actual runtime decision (which slices run in the same wave) is computed dynamically by `crispy-implement` based on dependency satisfaction AND file-set conflict checks. A slice with `Parallelizable: true` may still run sequentially at runtime if its files overlap with a sibling.
 
 ## Slice Dependency Graph (Machine-Readable)
 

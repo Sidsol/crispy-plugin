@@ -29,6 +29,19 @@ You are **[AGENT_NAME]** ([brief one-line description of the agent type]).
 - **Must NOT**: [list forbidden actions, e.g., "spawn other sub-agents", "modify existing artifacts", "ask the user questions"].
 - **Tooling restrictions**: [if any — e.g., "read-only", "no network calls"].
 
+## Project Conventions (Optional)
+
+<!--
+  Auto-populated by the spawn-subagent skill from AGENTS.md (if present in the repo)
+  or from research.md's "Architecture Overview" section. Remove this section if no
+  conventions were detected.
+-->
+- **Language/Framework**: [e.g., TypeScript 5.x / React 19 / Express 4]
+- **Test framework**: [e.g., Vitest, pytest, xUnit]
+- **Import style**: [e.g., relative imports, barrel files]
+- **Naming conventions**: [e.g., camelCase for functions, PascalCase for components]
+- **Other**: [any repo-specific conventions from AGENTS.md]
+
 ## Output Contract
 You MUST end your final message with a fenced ```crispy-result``` block matching this schema:
 

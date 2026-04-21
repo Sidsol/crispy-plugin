@@ -74,6 +74,8 @@ slices:
     checkpoint_criteria_count: <n>
 ```
 
+> **Note:** `parallelizable` is a static planning-time hint, not a runtime guarantee. `crispy-implement` re-evaluates parallelizability dynamically based on dependency satisfaction and file-set conflict detection at execution time.
+
 ## Context Management
 - Maximum files open per slice: {recommendation}
 - Recommended context window reset points: {between which slices}

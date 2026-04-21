@@ -83,6 +83,8 @@ Rules:
 - Callers MUST tolerate the absence of any signal — signals are opportunistic optimizations. A caller that depends on a signal must define the synchronous fallback path.
 - Signal names are reserved: do not invent new signal names without adding them to this table.
 
+**Streaming assumption:** Signals are useful only when the caller can observe the sub-agent's partial output mid-stream. This requires the sub-agent to be spawned **sync** and the runtime to support incremental output reading. If the runtime delivers the sub-agent's entire message as a single block (no streaming), signals collapse to no-ops — the caller will see them only after the final `crispy-result`, at which point the optimization window has closed. Every signal-dependent workflow MUST define a synchronous fallback path (per the rule above) so the workflow completes correctly regardless of streaming support.
+
 ---
 
 ## 4. Background vs Sync
