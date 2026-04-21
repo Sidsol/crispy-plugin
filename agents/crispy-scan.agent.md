@@ -56,13 +56,50 @@ After presenting findings, ask the user to:
 - Add any repos you may have missed
 - Remove false positives
 
-### 5. Save Results
+### 5. Structured Return
 
-Save the confirmed affected repos list to the feature's spec folder. Either:
-- Append an `## Affected Repositories` section to `intent.md`
-- Or create a separate `repos.md` in the same spec directory
+In place of writing a separate file, return the confirmed (or proposed) affected-repos set as a fenced ```yaml``` block in your output. Optionally append the same block under `## Affected Repositories` in `intent.md` if the feature folder exists.
 
-Include the repo path, reason, and confidence for each entry.
+```yaml
+affected_repos:
+  - name: <repo>
+    path: <abs-path>
+    reason: <one line>
+    confidence: high | medium | low
+    branch_status: <current-branch>
+```
+
+The orchestrator (or `crispy-intent`) consumes this block directly — do not duplicate it as prose in another file.
+
+## Output Contract
+
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3.
+
+```yaml
+status: ok | partial | failed
+agent: crispy-scan
+artifact_path: <intent.md if appended, else null>
+summary: |
+  <2-6 line summary: repos discovered, repos affected, confidence distribution>
+findings:                               # use §6 severity vocabulary
+  - severity: high | medium | low
+    location: <repo path or intent.md section>
+    description: <one sentence>
+    suggested_action: <one sentence>
+next_actions:                           # optional
+  - <imperative one-liner>
+metadata:
+  affected_repo_count: <int>
+  high_confidence_count: <int>
+  affected_repos:
+    - name: <repo>
+      path: <abs-path>
+      reason: <one line>
+      confidence: high | medium | low
+      branch_status: <current-branch>
+```
+
+`metadata.affected_repo_count`, `metadata.high_confidence_count`, and `metadata.affected_repos` are **required**. The `affected_repos[]` array is REQUIRED — downstream agents (`crispy-branch`, `crispy.agent.md`) consume this directly without re-parsing prose. Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
 
 ## Important Notes
 

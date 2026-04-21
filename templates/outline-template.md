@@ -21,13 +21,13 @@
 <!-- Order slices so each builds on the previous one. -->
 <!-- Map stories from spec.md to slices. -->
 
-| Slice   | Name                    | Stories Covered | Estimated Effort | Depends On |
-|---------|-------------------------|-----------------|------------------|------------|
-| Slice 1 | [e.g., Data Foundation] | —               | [S/M/L]          | —          |
-| Slice 2 | [e.g., Core CRUD]      | S-001           | [S/M/L]          | Slice 1    |
-| Slice 3 | [e.g., Business Logic]  | S-001, S-002    | [S/M/L]          | Slice 2    |
-| Slice 4 | [e.g., UI Integration]  | S-002           | [S/M/L]          | Slice 2    |
-| Slice 5 | [e.g., Polish & Edge]  | S-003           | [S/M/L]          | Slice 3, 4 |
+| Slice   | Name                    | Stories Covered | Estimated Effort | Parallelizable | Depends On |
+|---------|-------------------------|-----------------|------------------|----------------|------------|
+| Slice 1 | [e.g., Data Foundation] | —               | [S/M/L]          | false          | —          |
+| Slice 2 | [e.g., Core CRUD]      | S-001           | [S/M/L]          | false          | Slice 1    |
+| Slice 3 | [e.g., Business Logic]  | S-001, S-002    | [S/M/L]          | true           | Slice 2    |
+| Slice 4 | [e.g., UI Integration]  | S-002           | [S/M/L]          | true           | Slice 2    |
+| Slice 5 | [e.g., Polish & Edge]  | S-003           | [S/M/L]          | false          | Slice 3, 4 |
 
 ---
 
@@ -190,7 +190,27 @@ Slice 1 (Data Foundation)
 
 ---
 
-## 4. Context Management Notes
+## 4. Slice Dependency Graph (Machine-Readable)
+
+<!-- Consumed by crispy-implement to decide sequential vs fleet execution. -->
+
+```yaml
+slices:
+  - id: 1
+    name: [Data Foundation]
+    depends_on: []
+    parallelizable: false
+    checkpoint_criteria_count: 3
+  - id: 2
+    name: [Core CRUD]
+    depends_on: [1]
+    parallelizable: false
+    checkpoint_criteria_count: 3
+```
+
+---
+
+## 5. Context Management Notes
 
 <!-- CRISPY guideline: stay under 40% context usage per AI session. -->
 <!-- Plan context boundaries so the AI starts fresh when needed. -->

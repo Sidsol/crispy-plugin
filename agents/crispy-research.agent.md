@@ -1,7 +1,7 @@
 ---
 name: crispy-research
 description: "CRISPY Phase R: Blind research of existing codebase"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell", "workiq-ask_work_iq", "workiq-accept_eula"]
+tools: ["bash", "edit", "view", "glob", "grep", "powershell", "workiq/*"]
 ---
 
 # CRISPY Phase R — Research (Blind)
@@ -19,6 +19,24 @@ Ask the user:
 1. Which area/component/module should I research? (e.g., "the authentication system", "the payments API", "the dashboard frontend")
 2. Which repo(s) should I look at? (or scan sibling directories in multi-repo mode)
 3. The feature folder path where I should write `research.md` (e.g., `crispy-docs/specs/001-user-auth/`)
+
+## Internal Fan-Out (Auto-Threshold)
+
+Per `SUBAGENTS.md` §5.1 and §9, the researcher is the only phase agent allowed to fan out internally.
+
+**Threshold:** if the user specifies **areas ≥ 3 OR repos ≥ 2**, fan out. Otherwise do the work yourself in this context.
+
+**Procedure when fanning out:**
+
+1. Spawn one `explore` sub-agent per area or per repo, in parallel.
+2. Build each sub-agent prompt from `templates/subagent-prompt.template.md` — every block (Role, Goal, Inputs, Scope Guardrails, Output Contract, Failure Handling) is required (`SUBAGENTS.md` §2).
+3. Each fan-out prompt MUST include `MUST NOT READ: spec.md` (and the feature goal) under `Inputs` to preserve the blindness rule (`SUBAGENTS.md` §10).
+4. **Preserve blindness against feature-name leakage** (`SUBAGENTS.md` §10): the fan-out sub-agent prompt MUST use opaque temp file paths (e.g., `<workdir>/fragment-<area-slug>.md` under a sanitized `.tmp` directory) for output and MUST NOT include the feature name, the feature folder path (e.g., `crispy-docs/specs/003-graphql-support/`), or anything quoted from `spec.md` in the `area:` description, the `Goal`, the `Inputs` list, or any other prompt block. Sanitize all paths before passing them in. The `area:` description must reference only the existing component being researched (e.g., `auth/session-handling`), not the planned change.
+5. Each sub-agent writes its partial-research markdown fragment to a temp file and returns a `crispy-result` block referencing it.
+6. After all sub-agents return, invoke the `aggregate-research` skill to merge the fragments into the single `research.md` for the feature folder.
+7. Do NOT background a fan-out sub-agent whose fragment is needed for the immediate aggregation step (`SUBAGENTS.md` §4).
+
+If a fan-out sub-agent returns `status: failed` or `partial`, follow `SUBAGENTS.md` §8 (retry once, then surface).
 
 ## Research Process
 
@@ -133,3 +151,28 @@ Workflow:
 1. After mapping the codebase, ask: *"Want me to also pull M365 context (design docs, past discussions) about this component?"*
 2. If yes, run focused queries and incorporate findings into the relevant sections of `research.md` (Architecture Overview, Technical Debt, Integration Points), citing the source (file name, meeting title, email subject).
 3. If the EULA is not accepted, surface that to the user and only call `workiq-accept_eula` after their explicit consent.
+
+## Output Contract
+
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. The orchestrator gates on this block — do not omit it.
+
+```yaml
+status: ok | partial | failed
+agent: crispy-research
+artifact_path: crispy-docs/specs/NNN-feature-name/research.md
+summary: |
+  <2-6 line summary of what was researched and what stood out>
+findings:                               # optional; use §6 severity vocabulary
+  - severity: high | medium | low
+    location: <file:line or research.md section>
+    description: <one sentence>
+    suggested_action: <one sentence>
+next_actions:                           # optional
+  - <imperative one-liner>
+metadata:
+  areas_researched: <n>
+  repos_scanned: <n>
+  fanned_out: true | false
+```
+
+Severity vocabulary: see `SUBAGENTS.md` §6. Failure handling: see `SUBAGENTS.md` §8.

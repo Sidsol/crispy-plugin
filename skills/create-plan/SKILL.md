@@ -73,6 +73,29 @@ src/
 How to safely revert changes if implementation fails at any phase.
 ```
 
+## Machine-Readable Task Graph
+
+The produced `plan.md` MUST also include a fenced ` ```yaml task_graph: ...``` ` block. This block is consumed by `crispy-implement` to identify tasks that can run in parallel within and across slices.
+
+Schema:
+
+```yaml
+task_graph:
+  - id: TASK-001
+    slice: 1
+    story: <story-name>
+    depends_on: []
+    parallelizable_with: [TASK-002]
+    files: [path/to/file.ext]
+```
+
+Rules:
+
+- One entry per implementation step in the plan.
+- `depends_on` lists task IDs that must complete before this task starts.
+- `parallelizable_with` lists task IDs safe to run concurrently (no shared file writes, no logical conflicts).
+- `files` lists every file the task creates or modifies; used to detect write conflicts when fleeting.
+
 ## Guidelines
 
 - Every file mentioned must include its full relative path from the repo root.

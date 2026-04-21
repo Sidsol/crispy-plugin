@@ -229,9 +229,32 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase N
 
 ---
 
+## 7. Task Graph (Machine-Readable)
+
+<!-- Consumed by crispy-implement to identify parallel tasks within and across slices. -->
+
+```yaml
+task_graph:
+  - id: TASK-001
+    slice: 1
+    story: S-001
+    depends_on: []
+    parallelizable_with: []
+    files: [path/to/migration.sql]
+  - id: TASK-002
+    slice: 1
+    story: S-001
+    depends_on: [TASK-001]
+    parallelizable_with: [TASK-003]
+    files: [src/models/user.ts]
+```
+
+---
+
 <!-- NOTE FOR AI AGENT: -->
 <!-- This plan should be detailed enough that each step can be executed without -->
 <!-- further clarification. If a step says "implement the service," that's too vague. -->
 <!-- Instead: "Create UserService class with methods: createUser(dto), findById(id), -->
 <!-- updateUser(id, dto), deleteUser(id). Each method calls UserRepository." -->
 <!-- The companion tasks.md file provides the execution checklist derived from this plan. -->
+<!-- The Task Graph (§7) is REQUIRED — crispy-implement uses it to fleet parallel tasks. -->

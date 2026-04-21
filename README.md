@@ -2,7 +2,9 @@
 
 > **Clarify → Research → Intention → Structure → Plan → Yield**
 
-A GitHub Copilot CLI plugin that implements the CRISPY framework for structured, high-quality AI-assisted software development. Produces spec-kit-style artifacts and manages multi-repo branch operations.
+A GitHub Copilot CLI plugin that implements the CRISPY framework for structured, high-quality AI-assisted software development. Produces spec-kit-style artifacts, **coordinates sub-agents across phases** to keep contexts clean and parallelize work, drives slice-by-slice TDD execution after planning is done, and manages multi-repo branch operations.
+
+> 🆕 **v0.2 — Sub-Agent Orchestration.** The orchestrator now spawns each phase as its own sub-agent, runs research in the background while clarification continues, gates with rubber-duck reviews, and chains into a new `crispy-implement` agent that drives slice-by-slice TDD using sub-agent pairs. See [`SUBAGENTS.md`](./SUBAGENTS.md) for the protocol.
 
 ## Installation
 
@@ -46,12 +48,39 @@ Use any phase independently:
 @crispy-yield "Validate feature 003 is ready for implementation"
 ```
 
+### Implementation Agent (post-Yield)
+
+After Yield produces an `implementation-manifest.yaml`, run the implementation agent to actually build the feature:
+
+```
+@crispy-implement crispy-docs/specs/003-graphql-support/                  # default sequential TDD per slice
+@crispy-implement crispy-docs/specs/003-graphql-support/ mode:fleet       # parallel slices when independent
+@crispy-implement crispy-docs/specs/003-graphql-support/ mode:fast_mode   # skip the test-author sub-agent
+```
+
+`crispy-implement` walks the slice graph from `outline.md` and drives a TDD pair per slice:
+**test-author** → **implementer** → **rubber-duck**, then runs build/lint/tests between slices.
+
 ### Utility Agents
 
 ```
 @crispy-scan "Which repos are affected by adding GraphQL support?"
 @crispy-branch "Create feature branches for 003-graphql-support"
 ```
+
+### Autopilot Mode
+
+Invoke the orchestrator in autopilot to skip interactive gate prompts:
+
+```
+@crispy autopilot "Add user authentication to the platform"
+```
+
+In autopilot:
+- Each phase produces a 3–5 line **checkpoint summary** instead of asking for confirmation.
+- Rubber-duck reviews after Intent and Plan only block on `severity: high` findings (medium/low are appended to the artifact's `## Reviewer Findings` section, then continue).
+- `crispy-branch` runs **non-interactively** with sensible defaults (auto-stash, default `feature/NNN-feature-name`, skip repos with conflicts).
+- `crispy-implement` auto-recommends **`autopilot_fleet`** when the slice graph shows ≥ 2 independent slices.
 
 ## Artifact Output
 
@@ -61,14 +90,15 @@ Artifacts are stored in a `crispy-docs` directory:
 crispy-docs/
 └── specs/
     ├── 001-user-authentication/
-    │   ├── spec.md          # C: User stories, requirements, acceptance criteria
-    │   ├── research.md      # R: Blind codebase analysis
-    │   ├── intent.md        # I: Architecture direction, affected repos
-    │   ├── outline.md       # S: Vertical slices, checkpoints
-    │   ├── plan.md          # P: File-level tactical plan
-    │   ├── tasks.md         # P: Task breakdown by user story
-    │   ├── checklist.md     # Y: Quality gates, pre-implementation checks
-    │   └── contracts/       # API/interface contracts
+    │   ├── spec.md                       # C: User stories, requirements, acceptance criteria
+    │   ├── research.md                   # R: Blind codebase analysis (with optional fan-out merge)
+    │   ├── intent.md                     # I: Architecture direction, affected repos
+    │   ├── outline.md                    # S: Vertical slices + machine-readable slice dependency graph
+    │   ├── plan.md                       # P: File-level tactical plan + machine-readable task graph
+    │   ├── tasks.md                      # P: Task breakdown by user story
+    │   ├── checklist.md                  # Y: Quality gates, pre-implementation checks
+    │   ├── implementation-manifest.yaml  # Y: Hand-off manifest consumed by crispy-implement
+    │   └── contracts/                    # API/interface contracts
     │       └── auth-api.md
     └── 002-graphql-support/
         └── ...
@@ -114,42 +144,64 @@ The agent checks `AGENTS.md` in each repo for branch conventions. If none found,
 
 ### Key Principles
 
-- **Blind Research**: The Research phase must NOT know the feature goal — this keeps analysis objective
-- **Smart Zone**: Keep AI context below 40% — reset context before implementation
-- **Vertical Slices**: Build end-to-end (DB → API → UI) in small, testable pieces
-- **No Slop**: Every line of generated code must be reviewed by a human
+- **Blind Research**: The Research phase must NOT know the feature goal — this keeps analysis objective. Fan-out sub-agents inherit the same blindness rule.
+- **Smart Zone**: Keep AI context below 40% — sub-agent delegation is the primary mechanism for this. The orchestrator trusts sub-agent `crispy-result` summaries instead of re-loading artifacts.
+- **Vertical Slices**: Build end-to-end (DB → API → UI) in small, testable pieces. Independent slices run in parallel under `autopilot_fleet`.
+- **No Slop**: Every line of generated code is reviewed by a `rubber-duck` sub-agent against the spec/intent before the slice is accepted.
+
+### Sub-Agent Orchestration
+
+The orchestrator (`crispy`) is the primary spawner. Phase agents run as sync or background sub-agents and return a structured `crispy-result` block. Reviewer findings use a fixed severity vocabulary (`high` / `medium` / `low`) so autopilot gating is deterministic.
+
+| Spawn site | Mode | Trigger |
+|:---|:---|:---|
+| `crispy-research` (background) | bg | Area identified during Clarify |
+| `explore` × N (researcher fan-out) | parallel | areas ≥ 3 OR repos ≥ 2 |
+| `rubber-duck` after Intent | sync | After `intent.md` written |
+| `rubber-duck` after Plan | sync | After `plan.md` + `tasks.md` written |
+| `crispy-branch` (autopilot mode) | sync | After Intent confirms repos (autopilot only) |
+| `test-author → implementer → rubber-duck` | sync per slice | Each slice in `crispy-implement` |
+| TDD pair × N (slice fleet) | parallel | ≥ 2 slices with no pending deps |
+
+Full protocol — input contract, return shape, severity gating, failure handling, anti-patterns — is in [`SUBAGENTS.md`](./SUBAGENTS.md).
 
 ## Plugin Structure
 
 ```
 crispy-plugin/
-├── plugin.json              # Plugin manifest
-├── hooks.json               # Branch management hooks
-├── agents/                  # 9 custom agents
-│   ├── crispy.agent.md      # Orchestrator (full workflow)
+├── plugin.json                       # Plugin manifest
+├── hooks.json                        # Branch management hooks
+├── SUBAGENTS.md                      # Sub-agent orchestration protocol (authoritative)
+├── agents/                           # 10 custom agents
+│   ├── crispy.agent.md               # Orchestrator (planning workflow, spawns phase sub-agents)
 │   ├── crispy-clarify.agent.md
-│   ├── crispy-research.agent.md
+│   ├── crispy-research.agent.md      # Internal fan-out at areas ≥ 3 OR repos ≥ 2
 │   ├── crispy-intent.agent.md
-│   ├── crispy-structure.agent.md
-│   ├── crispy-plan.agent.md
-│   ├── crispy-yield.agent.md
+│   ├── crispy-structure.agent.md     # Emits machine-readable slice dependency graph
+│   ├── crispy-plan.agent.md          # Emits machine-readable task graph
+│   ├── crispy-yield.agent.md         # Writes implementation-manifest.yaml
+│   ├── crispy-implement.agent.md     # Post-Yield TDD slice executor (sequential / fleet / fast_mode)
 │   ├── crispy-scan.agent.md
-│   └── crispy-branch.agent.md
-├── skills/                  # 11 reusable skills
+│   └── crispy-branch.agent.md        # Has autopilot non-interactive mode
+├── skills/                           # 14 reusable skills
 │   ├── create-spec/
-│   ├── create-research/
+│   ├── create-research/              # Now supports fan-out mode
 │   ├── create-intent/
-│   ├── create-outline/
-│   ├── create-plan/
+│   ├── create-outline/               # Emits slice dependency graph yaml
+│   ├── create-plan/                  # Emits task graph yaml
 │   ├── create-tasks/
 │   ├── create-checklist/
 │   ├── create-contracts/
 │   ├── detect-repos/
-│   ├── manage-branches/
-│   └── init-crispy-docs/
-├── templates/               # 8 artifact templates
+│   ├── manage-branches/              # Has autopilot non-interactive mode
+│   ├── init-crispy-docs/
+│   ├── spawn-subagent/               # NEW — wraps the spawn protocol
+│   ├── aggregate-research/           # NEW — merges fan-out research fragments
+│   └── run-tdd-slice/                # NEW — test-author → implementer → rubber-duck loop
+├── templates/                        # 9 artifact templates
+│   └── subagent-prompt.template.md   # NEW — required skeleton for every sub-agent prompt
 └── .github/plugin/
-    └── marketplace.json     # Marketplace manifest
+    └── marketplace.json              # Marketplace manifest
 ```
 
 ## Configuration

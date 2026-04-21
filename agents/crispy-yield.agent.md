@@ -39,7 +39,7 @@ Read ALL artifacts from the feature folder:
 
 ### 3. CRISPY Quality Gates
 - [ ] **Research was blind**: research.md contains the blind research header and shows no feature-specific bias
-- [ ] **Intent was reviewed**: intent.md includes a confirmed recommendation (user was asked to review)
+- [ ] **Review gates passed**: read `crispy-docs/specs/NNN-feature-name/review-gates.yaml` and require `gates.intent.status == passed` AND `gates.plan.status == passed`. Reviewer may be `rubber-duck` (autopilot) or `user` (interactive) — both count. If `review-gates.yaml` is missing, treat this as a **blocker** and instruct the user to re-run the review gates via `@crispy` (do NOT fabricate the file).
 - [ ] **Vertical slices are end-to-end**: each phase in outline.md touches all necessary layers
 - [ ] **Plan has file-level detail**: every task in tasks.md references specific file paths
 - [ ] **Context will be fresh**: outline.md includes context reset notes between phases
@@ -73,7 +73,7 @@ Read ALL artifacts from the feature folder:
 ## CRISPY Quality Gates
 
 - [x/✗] Research was conducted blind (no feature knowledge)
-- [x/✗] Intent was reviewed and confirmed by user
+- [x/✗] Review gates passed (`review-gates.yaml`: intent + plan both `passed`)
 - [x/✗] Vertical slices are independently testable end-to-end
 - [x/✗] Plan has file-level specificity
 - [x/✗] Context management notes included for each phase
@@ -96,29 +96,87 @@ Read ALL artifacts from the feature folder:
 ## Issues Found
 [List any problems discovered during validation, with suggested fixes]
 
-## Implementation Instructions
-
-> **⚠️ IMPORTANT: Reset your AI context now.**
->
-> 1. Start a **new chat window** or context session.
-> 2. Feed it ONLY these documents:
->    - `intent.md` (architecture direction)
->    - `outline.md` (what to build, phase by phase)
-> 3. Begin with Phase 1 from outline.md.
-> 4. Reset context again between phases.
->
-> Do NOT feed the AI the full spec, research, or plan upfront —
-> it will consume too much context. The intent and outline contain
-> everything needed to start.
-
 ## Summary
 [One-paragraph summary: is this feature ready for implementation? Any blockers?]
 ```
+
+## Implementation Manifest
+
+After validation passes, write a machine-readable manifest at `crispy-docs/specs/NNN-feature-name/implementation-manifest.yaml` that `crispy-implement` (and autopilot/fleet runners) consume.
+
+**Process:** before writing the manifest, read the fenced YAML blocks from `outline.md` ("Slice Dependency Graph (Machine-Readable)") and `plan.md` ("Task Graph (Machine-Readable)") and copy them **verbatim** into the manifest under `slice_graph` and `task_graph`. Also read `review-gates.yaml` and copy the `gates` map into `review_gates`. If any of these source blocks is missing or unparsable, do NOT write the manifest — set `ready: false` with a blocker naming the missing/unparsable block.
+
+```yaml
+feature: <name>
+feature_folder: <path>
+artifacts:
+  spec: spec.md
+  research: research.md
+  intent: intent.md
+  outline: outline.md
+  plan: plan.md
+  tasks: tasks.md
+  contracts_dir: contracts/  # or null
+slice_graph:
+  # Verbatim copy of the yaml block from outline.md "Slice Dependency Graph (Machine-Readable)"
+  slices: [ ... ]
+task_graph:
+  # Verbatim copy of the yaml block from plan.md "Task Graph (Machine-Readable)"
+  - id: TASK-001
+    # ...
+review_gates:
+  # Verbatim copy of the gates map from review-gates.yaml
+  intent:
+    status: passed | blocked | skipped
+    reviewer: rubber-duck | user
+    mode: interactive | autopilot
+    findings_count: { high: <n>, medium: <n>, low: <n> }
+    timestamp: <ISO-8601>
+  plan:
+    status: passed | blocked | skipped
+    reviewer: rubber-duck | user
+    mode: interactive | autopilot
+    findings_count: { high: <n>, medium: <n>, low: <n> }
+    timestamp: <ISO-8601>
+ready: true | false
+blockers: []
+```
+
+Set `ready: false` and populate `blockers` (one short string per issue) if any quality gate or consistency check failed, if either review gate is not `passed`, or if the slice/task graph blocks are missing/unparsable. Do NOT write the manifest if required artifacts are missing — return `status: partial` instead (`SUBAGENTS.md` §8).
+
+## Final Message to the User
+
+> ✅ **Planning complete.** Run `@crispy-implement` to begin slice-by-slice TDD implementation, or invoke autopilot/fleet for parallel execution of independent slices (see `outline.md` slice graph). The implementation manifest at `implementation-manifest.yaml` carries everything the implementer needs.
+
+## Output Contract
+
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. The orchestrator gates on `ready` to decide whether to invoke `crispy-implement`.
+
+```yaml
+status: ok | partial | failed
+agent: crispy-yield
+artifact_path: crispy-docs/specs/NNN-feature-name/checklist.md
+summary: |
+  <2-6 line summary: gates passed/failed, manifest readiness>
+findings:                               # use §6 severity vocabulary
+  - severity: high | medium | low
+    location: <artifact:section>
+    description: <one sentence>
+    suggested_action: <one sentence>
+next_actions:                           # optional
+  - <imperative one-liner>
+metadata:
+  manifest_path: crispy-docs/specs/NNN-feature-name/implementation-manifest.yaml
+  ready: true | false
+  blocker_count: <n>
+```
+
+Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
 
 ## Guidelines
 
 - Be strict. If something is missing or inconsistent, flag it — don't let it slide.
 - If validation fails, tell the user exactly which phase needs to be revisited and why.
-- The context reset reminder is critical — this is what makes CRISPY effective.
+- The implementation manifest is the contract with `crispy-implement` — keep it accurate.
 - The checklist should give the user confidence that they've done thorough planning.
 - This is the LAST step before code is written. Treat it as a launch review.

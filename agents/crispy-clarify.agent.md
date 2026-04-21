@@ -1,7 +1,7 @@
 ---
 name: crispy-clarify
 description: "CRISPY Phase C: Clarify requirements and produce a feature specification"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell", "workiq-ask_work_iq", "workiq-accept_eula"]
+tools: ["bash", "edit", "view", "glob", "grep", "powershell", "workiq/*"]
 ---
 
 # CRISPY Phase C — Clarify
@@ -121,3 +121,42 @@ How to use it:
 5. Cite the source (email subject, meeting title, file name) when incorporating findings into spec.md so requirements stay traceable.
 
 Treat WorkIQ findings as **input to clarifying questions**, not as the spec itself — always confirm with the user before locking anything in.
+
+## Background Research Hand-off
+
+As soon as the user identifies a general research **area** (a component, module, or system to investigate) — even before all clarifying questions are answered — emit an **interim** ```` ```crispy-signal ```` block (per `SUBAGENTS.md` §3.1) so the orchestrator can kick off `crispy-research` in the **background** while you continue clarifying (`SUBAGENTS.md` §4, §9).
+
+Emit the signal inline in your message at the moment the area becomes known — do NOT wait for the final `crispy-result`:
+
+```crispy-signal
+signal: research_area_identified
+payload:
+  research_area: "<area>"
+```
+
+Then continue clarifying. The signal is advisory; the orchestrator may or may not act on it. You MUST still emit the standard final `crispy-result` block at the end of your message (see Output Contract below). Do not block on whether research has started.
+
+## Output Contract
+
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3.
+
+```yaml
+status: ok | partial | failed
+agent: crispy-clarify
+artifact_path: crispy-docs/specs/NNN-feature-name/spec.md
+summary: |
+  <2-6 line summary: feature folder, P1/P2/P3 story counts, open questions>
+findings:                               # use §6 severity vocabulary
+  - severity: high | medium | low
+    location: <spec.md section or clarify-conversation>
+    description: <one sentence>
+    suggested_action: <one sentence>
+next_actions:                           # optional
+  - <imperative one-liner>
+metadata:
+  feature_folder: crispy-docs/specs/NNN-feature-name/
+  research_area: "<area or null>"
+  open_question_count: <n>
+```
+
+Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8. Interim signals: `SUBAGENTS.md` §3.1.

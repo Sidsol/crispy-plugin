@@ -18,6 +18,8 @@ Read ALL previous artifacts from the feature folder:
 
 ## Process
 
+> **Note:** After this agent returns, the orchestrator runs a `rubber-duck` review gate against `plan.md` and `tasks.md` (`SUBAGENTS.md` §9). Do not self-review or block on user confirmation here — gating belongs to the orchestrator (`SUBAGENTS.md` §10).
+
 ### 1. Technical Context
 Document the implementation environment:
 - Language(s) and version(s)
@@ -126,6 +128,28 @@ If the feature involves APIs (REST, GraphQL, events, etc.):
 ## Dependency Graph
 [Text-based visualization of task dependencies]
 
+### Machine-Readable Task Graph
+
+Emit the task graph as a fenced ```yaml``` block (consumed by `crispy-implement` to identify parallel slices):
+
+```yaml
+task_graph:
+  - id: TASK-001
+    slice: 1
+    story: <story-name>
+    depends_on: []
+    parallelizable_with: [TASK-002]
+    files: [path/to/file.ext]
+  - id: TASK-002
+    slice: 1
+    story: <story-name>
+    depends_on: []
+    parallelizable_with: [TASK-001]
+    files: [path/to/other.ext]
+```
+
+Every TASK-NNN listed above in the prose breakdown must appear here exactly once.
+
 ## Parallel Opportunities
 [Which tasks/phases can be worked on simultaneously]
 
@@ -169,3 +193,30 @@ Create API contract files as appropriate for the feature (OpenAPI, GraphQL SDL, 
 - Tasks should be small enough to implement in one focused session.
 - The plan must be executable by someone who has never seen the codebase — rely on the artifacts, not tribal knowledge.
 - If research.md flagged technical debt in files you're modifying, include cleanup tasks.
+
+## Output Contract
+
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. The orchestrator's `rubber-duck` gate and `crispy-implement` both consume this block.
+
+```yaml
+status: ok | partial | failed
+agent: crispy-plan
+artifact_path: crispy-docs/specs/NNN-feature-name/plan.md
+summary: |
+  <2-6 line summary: phases, task count, contracts produced, parallelization shape>
+findings:                               # use §6 severity vocabulary
+  - severity: high | medium | low
+    location: <plan.md section or tasks.md line>
+    description: <one sentence>
+    suggested_action: <one sentence>
+next_actions:                           # optional
+  - <imperative one-liner>
+metadata:
+  task_count: <n>
+  phase_count: <n>
+  parallel_task_count: <n>
+  contracts_dir: <path or null>
+  task_graph_ref: plan.md#task_graph
+```
+
+Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.

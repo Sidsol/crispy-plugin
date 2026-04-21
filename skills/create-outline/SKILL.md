@@ -16,11 +16,24 @@ Generate an `outline.md` that breaks the feature into vertical implementation sl
 
 ## Template Structure
 
+The outline MUST include:
+
+- A **Slices Overview** table with `Parallelizable` (true/false) and `Depends On` columns so `crispy-implement` can decide sequential vs fleet execution at a glance.
+- A **Slice Dependency Graph (Machine-Readable)** section emitting a fenced yaml block (schema below).
+
 ```markdown
 # Implementation Outline: {Feature Name}
 
 ## Slice Strategy
 Brief explanation of how the feature was decomposed and why this slicing approach was chosen.
+
+## Slices Overview
+
+| Slice | Name | Stories | Estimated Effort | Depends On | Parallelizable |
+|---|---|---|---|---|---|
+| 1 | {name} | S-001 | M | — | false |
+| 2 | {name} | S-002 | S | 1 | false |
+| 3 | {name} | S-003 | M | 1 | true |
 
 ## Slices
 
@@ -48,6 +61,17 @@ Brief explanation of how the feature was decomposed and why this slicing approac
 Slice 1 ──→ Slice 3
 Slice 2 ──→ Slice 3
 Slice 3 ──→ Slice 4
+```
+
+## Slice Dependency Graph (Machine-Readable)
+
+```yaml
+slices:
+  - id: 1
+    name: <name>
+    depends_on: []
+    parallelizable: false
+    checkpoint_criteria_count: <n>
 ```
 
 ## Context Management

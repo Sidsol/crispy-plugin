@@ -64,6 +64,18 @@ Issues, inconsistencies, or areas of concern discovered during analysis.
 Design patterns, conventions, and idioms used consistently in the codebase.
 ```
 
+## Fan-Out Mode
+
+When the caller (typically `crispy-research`) determines that the work meets the **fan-out threshold** — **areas ≥ 3 OR repos ≥ 2** — this skill is invoked **after fan-out** rather than running the analysis itself.
+
+Workflow:
+
+1. The caller spawns one `explore` sub-agent per area or repo (see `SUBAGENTS.md` §5.1). Each sub-agent inherits the **blindness rule** (MUST NOT read `spec.md` or the feature goal) and writes a partial-research markdown fragment to a temp file.
+2. Once all fragments are produced, invoke the `aggregate-research` skill on the fragment paths to merge them into the single canonical `research.md` for the feature.
+3. Below threshold (areas < 3 AND repos < 2), run this skill as documented above — no fan-out, no aggregation.
+
+The aggregation step is mandatory in fan-out mode: do not concatenate fragments by hand and do not skip straight to writing `research.md` from one fragment.
+
 ## Guidelines
 
 - Reference specific file paths and line numbers wherever possible.

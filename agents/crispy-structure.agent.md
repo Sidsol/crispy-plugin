@@ -64,11 +64,34 @@ Write to the feature folder:
 
 ## Vertical Slices Overview
 
-| Phase | Name | Scope | Complexity | Dependencies |
-|-------|------|-------|------------|--------------|
-| 1     | ...  | ...   | S/M/L      | None         |
-| 2     | ...  | ...   | S/M/L      | Phase 1      |
-| ...   | ...  | ...   | ...        | ...          |
+| Phase | Name | Scope | Complexity | Depends On | Parallelizable |
+|-------|------|-------|------------|------------|----------------|
+| 1     | ...  | ...   | S/M/L      | []         | false          |
+| 2     | ...  | ...   | S/M/L      | [1]        | false          |
+| 3     | ...  | ...   | S/M/L      | [1]        | true           |
+| ...   | ...  | ...   | ...        | ...        | ...            |
+
+`Depends On` is a list of phase numbers (empty list `[]` if none). `Parallelizable` is `true` when the slice has no pending dependencies that block a sibling slice from running in the same wall-clock window.
+
+## Slice Dependency Graph (Machine-Readable)
+
+Below the overview table, emit the slice graph as a fenced ```yaml``` block. `crispy-implement` consumes this to decide between sequential, autopilot, and `autopilot_fleet` modes (`SUBAGENTS.md` §5.2).
+
+```yaml
+slices:
+  - id: 1
+    name: <name>
+    depends_on: []
+    parallelizable: false
+    checkpoint_criteria_count: <n>
+  - id: 2
+    name: <name>
+    depends_on: [1]
+    parallelizable: false
+    checkpoint_criteria_count: <n>
+```
+
+Every phase in the prose breakdown below must appear here exactly once.
 
 ---
 
@@ -115,3 +138,28 @@ Write to the feature folder:
 - Always include checkpoint criteria — these become your "definition of done" per phase.
 - Context management notes are critical: the person implementing will use them to stay efficient.
 - Reference specific files from research.md so the implementer knows exactly where to look.
+
+## Output Contract
+
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. `crispy-implement` consumes the slice graph referenced here.
+
+```yaml
+status: ok | partial | failed
+agent: crispy-structure
+artifact_path: crispy-docs/specs/NNN-feature-name/outline.md
+summary: |
+  <2-6 line summary: number of slices, walking-skeleton choice, parallel opportunities>
+findings:                               # use §6 severity vocabulary
+  - severity: high | medium | low
+    location: <outline.md section>
+    description: <one sentence>
+    suggested_action: <one sentence>
+next_actions:                           # optional
+  - <imperative one-liner>
+metadata:
+  slice_count: <n>
+  parallelizable_slice_count: <n>
+  slice_graph_ref: outline.md#slice-dependency-graph-machine-readable
+```
+
+Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.

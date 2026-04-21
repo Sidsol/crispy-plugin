@@ -52,6 +52,20 @@ Present a summary table showing the result for each repository:
 | {name} | ℹ️ Existing | feature/042-auth | Already existed, checked out |
 ```
 
+## Autopilot Mode (Non-Interactive)
+
+When invoked with `mode: autopilot`, this skill runs without prompting the user. The default mode remains **interactive** (as documented above).
+
+In autopilot mode:
+
+- **Uncommitted changes:** Auto-stash with a descriptive message (e.g., `crispy-autopilot: stash before NNN-feature-name`) — do not prompt.
+- **Branch naming:** If `AGENTS.md` defines a convention, follow it. Otherwise default to `feature/NNN-feature-name` without asking for confirmation.
+- **Conflicts on `develop` pull:** Skip that repo (do not prompt, do not attempt resolution). Mark it `⚠️ Skipped` in the summary table and continue with remaining repos.
+- **Existing branch with the same name:** Check it out (do not prompt for delete/rename). Mark it `ℹ️ Existing` in the summary.
+- **Failures:** Bubble up in the final summary table with `status: failed` and the error reason. Do not block the orchestrator — the orchestrator decides whether to halt based on the structured result.
+
+Autopilot must never perform destructive operations (force-push, branch delete, hard reset) — those still require interactive consent.
+
 ## Guidelines
 
 - Process each repository independently — one failure should not block others.
