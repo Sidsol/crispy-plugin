@@ -114,6 +114,7 @@ crispy-docs/
     │   ├── tasks.md                      # P: Task breakdown by user story
     │   ├── checklist.md                  # Y: Quality gates, pre-implementation checks
     │   ├── implementation-manifest.yaml  # Y: Hand-off manifest consumed by crispy-implement
+    │   ├── NNN-feature-name.code-workspace  # VSCode multi-root workspace (multi-repo only)
     │   └── contracts/                    # API/interface contracts
     │       └── auth-api.md
     └── 002-graphql-support/
@@ -146,6 +147,12 @@ When the orchestrator detects cross-repo impact:
 ### Branch Naming
 
 The agent checks `AGENTS.md` in each repo for branch conventions. If none found, it asks you and defaults to `feature/NNN-feature-name`.
+
+### VSCode Workspace
+
+After creating branches, `crispy-branch` automatically generates a `.code-workspace` file in the feature folder containing only the affected repos plus `crispy-docs`. It then opens the workspace in VSCode so you can monitor code changes across all repos in one window.
+
+The workspace file uses relative paths, so it works across machines if repo layouts are consistent.
 
 ## CRISPY Framework Summary
 
@@ -212,6 +219,7 @@ crispy-plugin/
 │   ├── manage-branches/              # Has autopilot non-interactive mode
 │   ├── init-crispy-docs/
 │   ├── spawn-subagent/               # NEW — wraps the spawn protocol
+│   ├── create-workspace/             # NEW — generates VSCode multi-root workspace for affected repos
 │   ├── aggregate-research/           # NEW — merges fan-out research fragments
 │   └── run-tdd-slice/                # NEW — test-author → implementer → rubber-duck loop
 ├── templates/                        # 9 artifact templates

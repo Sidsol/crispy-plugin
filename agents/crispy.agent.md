@@ -157,7 +157,8 @@ Steps:
    - Spawn `crispy-scan` **sync** to confirm the affected-repos list against the filesystem.
    - **Autopilot:** spawn `crispy-branch` **sync** with `mode: autopilot` (per `crispy-branch.agent.md` "Autopilot Mode"). Pass the `metadata.affected_repos[]` array from the `crispy-scan` (or `crispy-intent`) `crispy-result` directly to `crispy-branch` — do NOT re-parse `intent.md` prose. Failures bubble up as blockers (§8) — surface to the user and halt.
    - **Interactive:** ask the user before spawning `crispy-branch` (omit `mode: autopilot`).
-4. Emit checkpoint (autopilot) or ask for confirmation (interactive) before moving to Structure.
+4. After `crispy-branch` completes, note `metadata.workspace_path` from its `crispy-result` — this is the `.code-workspace` file it created. In autopilot, include the workspace path in the checkpoint summary. In interactive, confirm the workspace opened successfully.
+5. Emit checkpoint (autopilot) or ask for confirmation (interactive) before moving to Structure.
 
 ---
 

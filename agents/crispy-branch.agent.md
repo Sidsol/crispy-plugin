@@ -110,6 +110,30 @@ After processing all repos, present a summary:
 | D:\Repos\repo-b | ⚠️ Skipped | — | Merge conflicts on develop |
 | D:\Repos\repo-c | ✅ Success | feature/042-user-auth | Stashed 2 files |
 
+### Step 8 — Create & Open VSCode Workspace
+
+After the branch report, create a VSCode multi-root workspace file so the user can monitor code changes across all affected repos in one window.
+
+**Prerequisites:** at least one repo has `status: success` in the Step 7 report.
+
+Invoke the `create-workspace` skill (`skills/create-workspace/SKILL.md`) with:
+- `feature_folder`: the feature spec folder path (from inputs or derived from feature name).
+- `feature_name`: the NNN-feature-name (from inputs).
+- `repos`: only the repos with `status: success` from Step 7 (skip failed/skipped repos). Use the repo directory name as `name` (title-cased, e.g., `api-server` → `Api Server`).
+- `crispy_docs_path`: the `crispy-docs` root folder.
+- `auto_open`: `true`.
+
+**Mode behavior:**
+
+| Mode | Behavior |
+|---|---|
+| **Interactive** | Ask: *"Create a VSCode workspace with the {N} affected repos and open it?"* — skip if the user declines. |
+| **Autopilot** | Create and open automatically. Log in checkpoint summary. |
+
+If the skill returns `status: ok`, record `metadata.workspace_path` from the skill's result. If it returns `status: partial` or `failed`, emit a `severity: low` finding — workspace creation is helpful but not blocking.
+
+If no repos succeeded in Step 7, skip this step entirely.
+
 ## Important Notes
 
 - Always use Windows-style paths with backslashes.
@@ -136,6 +160,7 @@ next_actions:                           # optional
   - <imperative one-liner>
 metadata:
   branch_name: <feature/NNN-feature-name>
+  workspace_path: <abs-path-to-.code-workspace or null>
   results:
     - repo: <abs-path>
       status: success | skipped | failed
