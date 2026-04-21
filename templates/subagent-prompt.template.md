@@ -8,6 +8,7 @@
 
 ## Role
 You are **[AGENT_NAME]** ([brief one-line description of the agent type]).
+<!-- Model hint (optional): [default | higher-capability] — see SUBAGENTS.md §1.1 -->
 
 ## Goal
 [One paragraph stating the outcome the caller needs. Be specific about the deliverable.]

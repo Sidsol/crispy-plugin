@@ -19,6 +19,22 @@ The CRISPY framework uses **sub-agents** to keep contexts clean, run independent
 
 **Primary fan-out rule:** The orchestrator (`crispy` or `crispy-implement`) is the primary spawner. Phase agents only fan out internally for clearly bounded work — currently only the researcher, only when the fan-out threshold is met.
 
+### 1.1 Model Recommendations
+
+By default, Copilot CLI subagents use a low-cost model. Quality-sensitive phases benefit from a higher-capability model. The spawner MAY pass a `model` hint when invoking the sub-agent.
+
+| Role / Agent | Recommended model | Rationale |
+|---|---|---|
+| `rubber-duck` (reviewer) | Higher-capability (e.g., Sonnet-class or above) | Reviews require nuanced judgment on security, contracts, and design. Low-cost models miss subtle issues. |
+| `crispy-intent` | Higher-capability | Architecture analysis with 3 options + recommendation requires strong reasoning. |
+| `crispy-research` (aggregation) | Default is acceptable | Aggregation is mostly mechanical (merge + dedup). |
+| `test-author` | Default is acceptable | Test generation from clear checkpoint criteria is well-scoped. |
+| `implementer` | Default or higher | Depends on slice complexity. Default for S-effort slices; consider higher for M/L. |
+| `explore` (fan-out) | Default | Read-only exploration is well-suited to low-cost models. |
+| `crispy-clarify`, `crispy-structure`, `crispy-plan`, `crispy-yield` | Default is acceptable | Structured output from clear inputs. |
+
+These are recommendations, not hard requirements. The orchestrator should respect any user-specified model override (e.g., `model:claude-opus-4.5` in the invocation). Cost-conscious users can ignore these hints — the protocol works with any model, but quality-sensitive gates (`rubber-duck`, `crispy-intent`) are the most likely to degrade on low-cost models.
+
 ---
 
 ## 2. Prompt Contract (Input)
