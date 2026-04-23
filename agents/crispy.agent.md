@@ -1,10 +1,13 @@
 ---
 name: crispy
 description: "CRISPY Orchestrator: Full Clarify→Research→Intention→Structure→Plan→Yield workflow"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell", "workiq/*"]
+tools: ["execute", "edit", "read", "search", "agent", "workiq/*"]
 ---
 
 # CRISPY Orchestrator
+
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+
 
 You are the CRISPY orchestrator — the main entry point for the full **Clarify → Research → Intention → Structure → Plan → Yield** workflow. You no longer perform phase work inline; instead you **coordinate sub-agents**, one per phase, using the spawn protocol in `SUBAGENTS.md` (esp. §1 roles, §2 prompt contract, §3 return shape, §4 background-vs-sync, §6 reviewer severity, §9 spawn sites). Each phase agent writes its own artifact and returns a structured `crispy-result`; you trust those summaries and gate the workflow without re-loading artifacts unnecessarily (§7, §10).
 
@@ -134,12 +137,12 @@ When the result arrives:
 ## Phase 3: Intention
 
 **Sub-agent:** `crispy-intent` — **sync.**
-**Gate field:** `status: ok` AND a clean `rubber-duck` review (per autopilot/interactive rules).
+**Gate field:** `status: ok` AND a clean two-stage review (`spec-review` + `code-review`) (per autopilot/interactive rules).
 
 Steps:
 
 1. Spawn `crispy-intent` sync. `MUST READ`: `spec.md`, `research.md`, feature folder. Output: `intent.md` plus a list of affected repos in `metadata.affected_repos`.
-2. **Review gate** (`SUBAGENTS.md` §9 "Intent review gate"): spawn `rubber-duck` **sync** with `MUST READ`: `spec.md`, `research.md`, `intent.md`. Reviewer must classify findings using §6 vocabulary only.
+2. **Review gate** (`SUBAGENTS.md` §9 "Intent review gate"): spawn `spec-review` **sync**, then `code-review` **sync** with `MUST READ`: `spec.md`, `research.md`, `intent.md`. Reviewer must classify findings using §6 vocabulary only.
    - **Autopilot:** if any finding has `severity: high`, **block** and surface to the user. Otherwise append `medium`/`low` findings to `intent.md`'s `## Reviewer Findings` section and continue (§6).
    - **Interactive:** surface all severities and ask the user how to proceed.
    - **Record the gate result** in `crispy-docs/specs/NNN-feature-name/review-gates.yaml` (create the file if missing, otherwise update the `gates.intent` block):
@@ -147,12 +150,12 @@ Steps:
      gates:
        intent:
          status: passed | blocked | skipped
-         reviewer: rubber-duck | user
+         reviewer: spec-review+code-review | user
          mode: interactive | autopilot
          findings_count: { high: <n>, medium: <n>, low: <n> }
          timestamp: <ISO-8601>
      ```
-     `status: passed` only when no `high` finding blocked the gate (autopilot) or the user explicitly approved (interactive). `reviewer: rubber-duck` in autopilot, `user` in interactive (or both, if the rubber-duck ran and the user then confirmed — record `user` since that is the binding decision).
+     `status: passed` only when no `high` finding blocked the gate (autopilot) or the user explicitly approved (interactive). `reviewer: spec-review+code-review` in autopilot, `user` in interactive (or both, if the rubber-duck ran and the user then confirmed — record `user` since that is the binding decision).
 3. **Multi-repo branch setup** (only if `metadata.affected_repos.length > 1` or single-repo work spans multiple repos):
    - Spawn `crispy-scan` **sync** to confirm the affected-repos list against the filesystem.
    - **Autopilot:** spawn `crispy-branch` **sync** with `mode: autopilot` (per `crispy-branch.agent.md` "Autopilot Mode"). Pass the `metadata.affected_repos[]` array from the `crispy-scan` (or `crispy-intent`) `crispy-result` directly to `crispy-branch` — do NOT re-parse `intent.md` prose. Failures bubble up as blockers (§8) — surface to the user and halt.
@@ -177,18 +180,18 @@ Spawn `crispy-structure` sync. `MUST READ`: `spec.md`, `research.md`, `intent.md
 ## Phase 5: Plan
 
 **Sub-agent:** `crispy-plan` — **sync.**
-**Gate field:** `status: ok` AND clean `rubber-duck` review on `plan.md` + `tasks.md`.
+**Gate field:** `status: ok` AND clean two-stage review (`spec-review` + `code-review`) on `plan.md` + `tasks.md`.
 
 Steps:
 
 1. Spawn `crispy-plan` sync. `MUST READ`: all prior artifacts. Output: `plan.md`, `tasks.md`, optional `contracts/`.
-2. **Review gate** (`SUBAGENTS.md` §9 "Plan review gate"): spawn `rubber-duck` **sync** with `MUST READ`: `intent.md`, `spec.md`, `plan.md`, `tasks.md`. Apply the same severity gating as Phase 3 (§6).
+2. **Review gate** (`SUBAGENTS.md` §9 "Plan review gate"): spawn `spec-review` **sync**, then `code-review` **sync** with `MUST READ`: `intent.md`, `spec.md`, `plan.md`, `tasks.md`. Apply the same severity gating as Phase 3 (§6).
    - **Record the gate result** in `crispy-docs/specs/NNN-feature-name/review-gates.yaml` (update the `gates.plan` block; preserve the `gates.intent` block written in Phase 3):
      ```yaml
      gates:
        plan:
          status: passed | blocked | skipped
-         reviewer: rubber-duck | user
+         reviewer: spec-review+code-review | user
          mode: interactive | autopilot
          findings_count: { high: <n>, medium: <n>, low: <n> }
          timestamp: <ISO-8601>
@@ -278,3 +281,4 @@ crispy-docs/specs/NNN-feature-name/
 └── contracts/       ← Plan (if applicable)
     └── api-contract.yaml
 ```
+

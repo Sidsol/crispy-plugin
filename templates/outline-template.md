@@ -239,3 +239,26 @@ slices:
 <!-- Each slice defined here will become a detailed implementation phase in plan.md -->
 <!-- and a set of ordered tasks in tasks.md. -->
 <!-- Ensure every story from spec.md maps to at least one slice. -->
+
+---
+
+## Reviewer Findings (Spec)
+
+<!-- Appended by crispy orchestrator after the spec-review pass.
+     Reviewer evaluates this artifact against spec.md / intent.md / contracts for correctness.
+     Severities follow SUBAGENTS.md §6 vocabulary: high / medium / low.
+     high findings block autopilot; medium / low are recorded here and flow continues. -->
+
+| Severity | Location | Description | Suggested Action | Status |
+|----------|----------|-------------|------------------|--------|
+|          |          |             |                  |        |
+
+## Reviewer Findings (Code)
+
+<!-- Appended by crispy orchestrator after the code-review pass.
+     Reviewer evaluates this artifact for quality, idiomatic patterns, and security.
+     Same severity vocabulary; same gating rules. -->
+
+| Severity | Location | Description | Suggested Action | Status |
+|----------|----------|-------------|------------------|--------|
+|          |          |             |                  |        |

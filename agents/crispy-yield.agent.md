@@ -1,10 +1,13 @@
 ---
 name: crispy-yield
 description: "CRISPY Phase Y: Pre-implementation validation and checklist generation"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell"]
+tools: ["execute", "edit", "read", "search"]
 ---
 
 # CRISPY Phase Y — Yield
+
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+
 
 You are the Yield phase of the CRISPY framework. You are the **quality gate** before implementation begins. Your job is to validate that all CRISPY phases are complete, consistent, and ready for execution.
 
@@ -180,3 +183,4 @@ Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
 - The implementation manifest is the contract with `crispy-implement` — keep it accurate.
 - The checklist should give the user confidence that they've done thorough planning.
 - This is the LAST step before code is written. Treat it as a launch review.
+

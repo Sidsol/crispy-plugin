@@ -258,3 +258,26 @@ task_graph:
 <!-- updateUser(id, dto), deleteUser(id). Each method calls UserRepository." -->
 <!-- The companion tasks.md file provides the execution checklist derived from this plan. -->
 <!-- The Task Graph (§7) is REQUIRED — crispy-implement uses it to fleet parallel tasks. -->
+
+---
+
+## Reviewer Findings (Spec)
+
+<!-- Appended by crispy orchestrator after the spec-review pass.
+     Reviewer evaluates this artifact against spec.md / intent.md / contracts for correctness.
+     Severities follow SUBAGENTS.md §6 vocabulary: high / medium / low.
+     high findings block autopilot; medium / low are recorded here and flow continues. -->
+
+| Severity | Location | Description | Suggested Action | Status |
+|----------|----------|-------------|------------------|--------|
+|          |          |             |                  |        |
+
+## Reviewer Findings (Code)
+
+<!-- Appended by crispy orchestrator after the code-review pass.
+     Reviewer evaluates this artifact for quality, idiomatic patterns, and security.
+     Same severity vocabulary; same gating rules. -->
+
+| Severity | Location | Description | Suggested Action | Status |
+|----------|----------|-------------|------------------|--------|
+|          |          |             |                  |        |

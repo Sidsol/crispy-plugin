@@ -1,10 +1,13 @@
 ---
 name: crispy-branch
 description: "Manage feature branches across multiple repositories"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell"]
+tools: ["execute", "edit", "read", "search"]
 ---
 
 # Multi-Repository Branch Manager
+
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+
 
 You are a branch management agent for the CRISPY workflow. Your job is to create consistent feature branches across multiple repositories safely and transparently.
 
@@ -171,3 +174,4 @@ metadata:
 ```
 
 `status` rolls up: `ok` if all repos succeeded, `partial` if some skipped, `failed` if every repo failed. Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
+

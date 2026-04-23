@@ -13,8 +13,9 @@ The CRISPY framework uses **sub-agents** to keep contexts clean, run independent
 | **Orchestrator** | User | n/a | `crispy` (planning) and `crispy-implement` (execution). Owns the workflow, fans out work. |
 | **Phase agent** | Orchestrator | sync (mostly) | `crispy-clarify`, `crispy-research`, `crispy-intent`, `crispy-structure`, `crispy-plan`, `crispy-yield`. Each owns one CRISPY phase. |
 | **Internal explorer** | Phase agent | parallel | `explore` sub-agents the Research phase fans out to (one per area/repo) when the fan-out threshold is hit. |
-| **Reviewer** | Orchestrator / `crispy-implement` | sync | `rubber-duck` agent invoked at gates. |
-| **Implementer pair** | `crispy-implement` | sync per slice | `test-author` (writes failing tests) → `implementer` (makes tests pass) → `rubber-duck` (reviews). |
+| **Reviewer (spec)** | Orchestrator / `crispy-implement` | sync | `spec-review` agent (a `rubber-duck` invocation focused on correctness vs spec/intent/contracts). Invoked at gates. |
+| **Reviewer (code)** | Orchestrator / `crispy-implement` | sync | `code-review` agent (a `rubber-duck` invocation focused on quality, idioms, security). Runs after `spec-review` at the same gate. |
+| **Implementer pair** | `crispy-implement` | sync per slice | `test-author` (writes failing tests, RED verified) → `implementer` (makes tests pass, GREEN verified) → `spec-review` → `code-review`. |
 | **Utility** | Orchestrator | sync | `crispy-scan`, `crispy-branch`. |
 
 **Primary fan-out rule:** The orchestrator (`crispy` or `crispy-implement`) is the primary spawner. Phase agents only fan out internally for clearly bounded work — currently only the researcher, only when the fan-out threshold is met.
@@ -25,7 +26,8 @@ By default, Copilot CLI subagents use a low-cost model. Quality-sensitive phases
 
 | Role / Agent | Recommended model | Rationale |
 |---|---|---|
-| `rubber-duck` (reviewer) | Higher-capability (e.g., Sonnet-class or above) | Reviews require nuanced judgment on security, contracts, and design. Low-cost models miss subtle issues. |
+| `spec-review` (reviewer) | Higher-capability (e.g., Sonnet-class or above) | Spec/contract/requirement-coverage judgment requires strong reasoning. |
+| `code-review` (reviewer) | Higher-capability | Security and design-quality findings degrade quickly on low-cost models. |
 | `crispy-intent` | Higher-capability | Architecture analysis with 3 options + recommendation requires strong reasoning. |
 | `crispy-research` (aggregation) | Default is acceptable | Aggregation is mostly mechanical (merge + dedup). |
 | `test-author` | Default is acceptable | Test generation from clear checkpoint criteria is well-scoped. |
@@ -33,7 +35,7 @@ By default, Copilot CLI subagents use a low-cost model. Quality-sensitive phases
 | `explore` (fan-out) | Default | Read-only exploration is well-suited to low-cost models. |
 | `crispy-clarify`, `crispy-structure`, `crispy-plan`, `crispy-yield` | Default is acceptable | Structured output from clear inputs. |
 
-These are recommendations, not hard requirements. The orchestrator should respect any user-specified model override (e.g., `model:claude-opus-4.5` in the invocation). Cost-conscious users can ignore these hints — the protocol works with any model, but quality-sensitive gates (`rubber-duck`, `crispy-intent`) are the most likely to degrade on low-cost models.
+These are recommendations, not hard requirements. The orchestrator should respect any user-specified model override (e.g., `model:claude-opus-4.5` in the invocation). Cost-conscious users can ignore these hints — the protocol works with any model, but quality-sensitive gates (`spec-review`, `code-review`, `crispy-intent`) are the most likely to degrade on low-cost models.
 
 ---
 
@@ -137,7 +139,7 @@ The researcher fans out to multiple `explore` sub-agents when **areas ≥ 3 OR r
 
 ## 6. Severity Vocabulary (Reviewer Gating)
 
-`rubber-duck` and other reviewers MUST classify each finding using this fixed vocabulary:
+`spec-review`, `code-review`, and any other reviewer MUST classify each finding using this fixed vocabulary. Both reviewers share the same vocabulary and the same Mandatory High classes; the orchestrator gates on the **union** of `high` findings from both passes.
 
 | Severity | Definition | Autopilot behavior |
 |---|---|---|
@@ -200,19 +202,21 @@ Timeouts are safety nets for infrastructure failures (hung processes, unresponsi
 |---|---|---|---|---|
 | Background research | `crispy` | background | `crispy-research` | Area identified during Clarify |
 | Internal area split | `crispy-research` | parallel | `explore` × N | areas ≥ 3 OR repos ≥ 2 |
-| Intent review gate | `crispy` | sync | `rubber-duck` | After `intent.md` written |
-| Plan review gate | `crispy` | sync | `rubber-duck` | After `plan.md` + `tasks.md` written |
+| Intent review gate | `crispy` | sync | `spec-review` then `code-review` | After `intent.md` written |
+| Plan review gate | `crispy` | sync | `spec-review` then `code-review` | After `plan.md` + `tasks.md` written |
 | Cross-repo scan | `crispy` | sync | `crispy-scan` | During Intent (multi-repo mode) |
 | Auto branch setup | `crispy` | sync | `crispy-branch` (non-interactive) | After Intent confirms repos (autopilot) |
-| Slice implementation | `crispy-implement` | sync per slice (or fleet) | `test-author` → `implementer` → `rubber-duck` | Each slice in `outline.md` |
-| Slice fleet | `crispy-implement` | parallel | one TDD pair per independent slice | ≥ 2 slices with no pending deps |
+| Slice implementation | `crispy-implement` | sync per slice (or fleet) | `git-worktree-isolation` skill (fleet) → `test-author` (RED verified) → `implementer` (GREEN verified) → `spec-review` → `code-review` | Each slice in `outline.md` |
+| Finish branch | `crispy-implement` | sync (skill) | `finish-branch` | After last slice succeeds |
+| Slice fleet | `crispy-implement` | parallel | one TDD quad per independent slice (test-author → implementer → spec-review → code-review) | ≥ 2 slices with no pending deps |
 
 ---
 
 ## 10. Anti-Patterns
 
 - ❌ Orchestrator re-doing the work of a sub-agent because it didn't trust the summary.
-- ❌ A phase agent spawning rubber-duck itself (only the orchestrator gates).
+- ❌ A phase agent spawning `spec-review` or `code-review` itself (only the orchestrator gates).
+- ❌ Spawning a single legacy `rubber-duck` reviewer at a gate — protocol now requires the **two-stage** `spec-review` then `code-review` pair (§6, §9).
 - ❌ Background-spawning a writer whose output is needed in the very next step.
 - ❌ Researcher fan-out sub-agents reading `spec.md` (breaks blindness).
 - ❌ Reviewer using ad-hoc severity words ("nit", "critical", "🚨"). Use the §6 vocabulary.

@@ -185,3 +185,26 @@ constraints, team capabilities, or timeline requirements that drove the decision
 <!-- The intent.md should be reviewed by a human before proceeding to outline.md. -->
 <!-- If the selected approach was corrected during review, update this document -->
 <!-- to reflect the final decision — do NOT leave stale architecture choices. -->
+
+---
+
+## Reviewer Findings (Spec)
+
+<!-- Appended by crispy orchestrator after the spec-review pass.
+     Reviewer evaluates this artifact against spec.md / intent.md / contracts for correctness.
+     Severities follow SUBAGENTS.md §6 vocabulary: high / medium / low.
+     high findings block autopilot; medium / low are recorded here and flow continues. -->
+
+| Severity | Location | Description | Suggested Action | Status |
+|----------|----------|-------------|------------------|--------|
+|          |          |             |                  |        |
+
+## Reviewer Findings (Code)
+
+<!-- Appended by crispy orchestrator after the code-review pass.
+     Reviewer evaluates this artifact for quality, idiomatic patterns, and security.
+     Same severity vocabulary; same gating rules. -->
+
+| Severity | Location | Description | Suggested Action | Status |
+|----------|----------|-------------|------------------|--------|
+|          |          |             |                  |        |

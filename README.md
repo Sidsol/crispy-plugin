@@ -183,7 +183,7 @@ The orchestrator (`crispy`) is the primary spawner. Phase agents run as sync or 
 | `rubber-duck` after Intent | sync | After `intent.md` written |
 | `rubber-duck` after Plan | sync | After `plan.md` + `tasks.md` written |
 | `crispy-branch` (autopilot mode) | sync | After Intent confirms repos (autopilot only) |
-| `test-author → implementer → rubber-duck` | sync per slice | Each slice in `crispy-implement` |
+| `test-author (RED) → implementer (GREEN) → spec-review → code-review` | sync per slice | Each slice in `crispy-implement` |
 | TDD pair × N (slice fleet) | parallel | ≥ 2 slices with no pending deps |
 
 Full protocol — input contract, return shape, severity gating, failure handling, anti-patterns — is in [`SUBAGENTS.md`](./SUBAGENTS.md).
@@ -193,7 +193,8 @@ Full protocol — input contract, return shape, severity gating, failure handlin
 ```
 crispy-plugin/
 ├── plugin.json                       # Plugin manifest
-├── hooks.json                        # Branch management hooks
+├── hooks.json                        # Hook config (delegates to hooks/scripts/*.sh + *.ps1)
+├── hooks/scripts/                    # NEW — cross-platform hook scripts (bash + PowerShell pairs)
 ├── SUBAGENTS.md                      # Sub-agent orchestration protocol (authoritative)
 ├── agents/                           # 10 custom agents
 │   ├── crispy.agent.md               # Orchestrator (planning workflow, spawns phase sub-agents)
@@ -206,7 +207,7 @@ crispy-plugin/
 │   ├── crispy-implement.agent.md     # Post-Yield TDD slice executor (sequential / fleet / fast_mode)
 │   ├── crispy-scan.agent.md
 │   └── crispy-branch.agent.md        # Has autopilot non-interactive mode
-├── skills/                           # 14 reusable skills
+├── skills/                           # 16 reusable skills
 │   ├── create-spec/
 │   ├── create-research/              # Now supports fan-out mode
 │   ├── create-intent/
@@ -221,7 +222,9 @@ crispy-plugin/
 │   ├── spawn-subagent/               # NEW — wraps the spawn protocol
 │   ├── create-workspace/             # NEW — generates VSCode multi-root workspace for affected repos
 │   ├── aggregate-research/           # NEW — merges fan-out research fragments
-│   └── run-tdd-slice/                # NEW — test-author → implementer → rubber-duck loop
+│   ├── run-tdd-slice/                # test-author (RED) → implementer (GREEN) → spec-review → code-review loop
+│   ├── git-worktree-isolation/       # NEW — isolated worktrees for parallel slices
+│   └── finish-branch/                # NEW — verify, present PR/push/keep/discard, cleanup
 ├── templates/                        # 9 artifact templates
 │   └── subagent-prompt.template.md   # NEW — required skeleton for every sub-agent prompt
 └── .github/plugin/
@@ -235,6 +238,25 @@ The plugin works out of the box. Optional configuration:
 - **Branch naming**: Add conventions to `AGENTS.md` in your repos
 - **Marketplace**: Update `.github/plugin/marketplace.json` with your org details
 - **Hooks**: Customize `hooks.json` for additional pre-branch checks
+
+
+### Hooks
+
+Hook commands live in `hooks.json` and delegate to cross-platform scripts under `hooks/scripts/` (each hook ships a `.sh` + `.ps1` pair). Scripts read their JSON payload from stdin and may emit `{"permissionDecision": "deny", "permissionDecisionReason": "..."}` to block the tool call (see [hooks-configuration](https://docs.github.com/en/copilot/reference/hooks-configuration)).
+
+Active hooks:
+
+- `preToolUse: pre-branch-check` — denies `git checkout -b` / `git switch -c` / `git branch -c` when the working tree is dirty (override with `CRISPY_ALLOW_DIRTY=1`).
+- `preToolUse: pre-branch-fetch` — pre-fetches `origin/develop` before a new branch is created (advisory only).
+- `userPromptSubmit: inject-crispy-protocol` — telemetry only. Per the docs, `userPromptSubmit` output is ignored, so the protocol reminder lives in `templates/subagent-prompt.template.md` and `SUBAGENTS.md`, not in this hook.
+
+### Two-stage review
+
+Reviewer gates are split into `spec-review` (correctness vs spec/intent/contracts) and `code-review` (quality, idioms, security). Both share the same severity vocabulary (`high` / `medium` / `low`); the orchestrator gates on the **union** of `high` findings. See `SUBAGENTS.md` §1, §6, §9.
+
+### MCP allowlist enforcement
+
+The plugin ships no MCP servers of its own, but downstream consumers using [MCP allowlist enforcement](https://docs.github.com/en/copilot/reference/mcp-allowlist-enforcement) should reference MCP tools in agent `tools:` arrays as `<server-name>/<tool>` (e.g., `workiq/ask_work_iq`). Agent `tools:` arrays in this plugin already use canonical aliases (`execute`, `search`, `read`, `edit`, `agent`, `web`, `todo`) per [custom-agents-configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
 
 ## License
 

@@ -1,10 +1,13 @@
 ---
 name: crispy-intent
 description: "CRISPY Phase I: Define architectural intention and design direction"
-tools: ["bash", "edit", "view", "glob", "grep", "powershell"]
+tools: ["execute", "edit", "read", "search"]
 ---
 
 # CRISPY Phase I — Intention
+
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+
 
 You are the Intention phase of the CRISPY framework. You bridge the gap between what exists (research) and what's needed (spec) by defining an architectural direction.
 
@@ -160,3 +163,4 @@ metadata:
 ```
 
 The `affected_repos[]` array is REQUIRED — downstream agents (`crispy-branch`, `crispy.agent.md`) consume this directly without re-parsing prose. Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
+

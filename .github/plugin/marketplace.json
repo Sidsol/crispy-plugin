@@ -1,20 +1,19 @@
 {
   "name": "crispy-marketplace",
   "owner": {
-    "name": "CRISPY Engineering Team",
-    "email": "team@example.com"
+    "name": "CRISPY Engineering Team"
   },
   "metadata": {
     "description": "CRISPY workflow plugins for structured AI-assisted development",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "crispy-workflow",
-      "description": "CRISPY framework plugin — Clarify, Research, Intention, Structure, Plan, Yield. Produces spec-kit-style artifacts with multi-repo branch management.",
-      "version": "0.2.0",
+      "description": "CRISPY framework plugin — Clarify, Research, Intention, Structure, Plan, Yield. Two-stage review (spec + code), TDD slice execution with RED/GREEN enforcement, git-worktree isolation, multi-repo branch management.",
+      "version": "0.3.0",
       "source": ".",
-      "keywords": ["crispy", "spec-driven", "workflow", "multi-repo"],
+      "keywords": ["crispy", "spec-driven", "workflow", "multi-repo", "tdd", "quality-gates"],
       "category": "workflow"
     }
   ]

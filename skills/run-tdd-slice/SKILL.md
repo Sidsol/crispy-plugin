@@ -1,6 +1,6 @@
 ---
 name: run-tdd-slice
-description: "Execute one vertical slice via the test-author → implementer → rubber-duck loop"
+description: "Execute one vertical slice via the test-author (RED) → implementer (GREEN) → spec-review → code-review loop"
 ---
 
 # Run a TDD Slice
@@ -43,7 +43,9 @@ Use the prompt skeleton — all six blocks. Key contents:
 
 Spawn **sync**. Capture `metadata.test_files`.
 
-### 2. Run the test suite
+### 2. Run the test suite (RED verification)
+
+**RED gate:** the new tests MUST fail. If the test command exits 0 on the first run after step 1, treat it as a TDD violation: the tests are not actually exercising new behavior. Return `status: failed` with `next_actions: [test-author must write tests that actually fail before implementer is spawned]`. Do NOT skip to step 3.
 
 Run the project's existing test command (do not invent one). Confirm the new tests **fail** for the expected reason (missing implementation), not for unrelated errors (import errors, syntax issues).
 
@@ -76,7 +78,9 @@ Skeleton fields:
 
 Spawn **sync**.
 
-### 4. Run build / lint / tests
+### 4. Run build / lint / tests (GREEN verification)
+
+**GREEN gate:** the same test command from step 2 MUST now exit 0, AND the test names from `metadata.test_files` MUST appear as passing in the output. If the implementer "fixed" tests by deleting or weakening them rather than implementing the behavior, the test count will have dropped — flag this as `status: failed` with `next_actions: [implementer weakened or removed failing tests; revert and re-spawn]`.
 
 Use only commands that already exist in the repo. **Flake retry**: allow exactly ONE identical re-run of any verification command before classifying it as a persistent failure. If the second run also fails, treat as `status: failed`. This is distinct from the `SUBAGENTS.md` §8 sub-agent retry rule (which applies to sub-agent spawns) — this rule applies to direct command invocations inside this skill.
 
@@ -85,22 +89,35 @@ If anything fails (after the one allowed re-run):
 - Return `status: failed` with the offending command and tail of its output.
 - Do **not** loop or re-spawn the implementer. Surface to the caller (`SUBAGENTS.md` §8: persistent failure → surface, do not silently fall back).
 
-### 5. Spawn `rubber-duck` (sync)
+### 5. Spawn `spec-review` (sync)
 
 Skeleton fields:
 
-- **Role**: `rubber-duck` (reviewer).
-- **Goal**: review the slice {N} diff against `spec.md`, `intent.md`, and the slice's contracts; classify findings.
+- **Role**: `spec-review` (correctness reviewer).
+- **Goal**: review the slice {N} diff against `spec.md`, `intent.md`, `contracts`, and the slice's checkpoint criteria. Verify behavioral correctness and contract conformance.
 - **Inputs / MUST READ**: the diff (changed_files from step 3 + test_files from step 1, resolved relative to `worktree_path` if provided), `spec.md`, `intent.md`, `contracts`, `slice_section`.
-- **Scope guardrails — May**: read-only analysis, return findings. **Must NOT**: edit code, spawn other sub-agents (only the orchestrator gates — §10).
-- **Output contract**: `findings[]` is **required** (§3). Severity values must come from the §6 vocabulary: `high` / `medium` / `low` only — no `nit`, `critical`, or emoji (§10).
+- **Scope guardrails — May**: read-only analysis, return findings. **Must NOT**: edit code, spawn other sub-agents.
+- **Output contract**: `findings[]` is **required** (§3). Severity values must come from the §6 vocabulary: `high` / `medium` / `low` only.
 - **Failure handling**: per template defaults.
 
 Spawn **sync**.
 
+### 5b. Spawn `code-review` (sync)
+
+Skeleton fields:
+
+- **Role**: `code-review` (quality reviewer).
+- **Goal**: review the slice {N} diff for code quality, idiomatic patterns, security, and maintainability. Do NOT re-evaluate behavioral correctness — that is the `spec-review` pass.
+- **Inputs / MUST READ**: same diff as step 5; the project's style/lint config files if present.
+- **Scope guardrails — May**: read-only analysis, return findings. **Must NOT**: edit code, spawn other sub-agents.
+- **Output contract**: `findings[]` required, same §6 vocabulary.
+- **Failure handling**: per template defaults.
+
+Spawn **sync**, after step 5 returns.
+
 ### 6. Aggregate into one `crispy-result`
 
-Combine the three sub-results into a single block for `crispy-implement`:
+Combine the four sub-results (test-author, implementer, spec-review, code-review) into a single block for `crispy-implement`:
 
 ```yaml
 status: ok | partial | failed
@@ -109,9 +126,9 @@ artifact_path: null
 summary: |
   Slice {N} implemented via TDD.
   Tests: {count} added at {paths}. Implementation: {file_count} files changed.
-  Reviewer findings: {high} high / {medium} medium / {low} low.
+  Reviewer findings (spec+code union): {high} high / {medium} medium / {low} low.
 findings:
-  # passthrough from rubber-duck, severity vocabulary preserved (§6)
+  # passthrough from spec-review + code-review (union), severity vocabulary preserved (§6)
   - severity: ...
     location: ...
     description: ...
@@ -133,7 +150,7 @@ Gating rules the caller will apply (§6):
 
 ## Fast mode opt-out
 
-Caller may pass `fast_mode = true` to skip step 1 (the `test-author` spawn). The loop becomes: implementer → build/lint/tests → rubber-duck. Use only when:
+Caller may pass `fast_mode = true` to skip step 1 (the `test-author` spawn). The loop becomes: implementer → build/lint/tests → spec-review → code-review. Use only when:
 
 - The slice has pre-existing tests that already encode the checkpoint criteria, OR
 - The slice is purely refactor/cleanup with no new behavior.
