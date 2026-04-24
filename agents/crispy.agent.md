@@ -1,7 +1,7 @@
 ---
 name: crispy
 description: "CRISPY Orchestrator: Full Clarify→Research→Intention→Structure→Plan→Yield workflow"
-tools: ["execute", "edit", "read", "search", "agent", "workiq/*"]
+tools: ["execute", "edit", "read", "search", "agent", "web", "workiq/*"]
 ---
 
 # CRISPY Orchestrator

@@ -1,7 +1,7 @@
 ---
 name: crispy-research
 description: "CRISPY Phase R: Blind research of existing codebase"
-tools: ["execute", "edit", "read", "search", "workiq/*"]
+tools: ["execute", "edit", "read", "search", "web", "workiq/*"]
 ---
 
 # CRISPY Phase R — Research (Blind)
