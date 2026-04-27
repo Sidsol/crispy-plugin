@@ -39,7 +39,7 @@ From the spec's user stories and the intent's gap analysis, find natural groupin
 - What's the minimum viable first slice?
 
 ### 2. Define Phases
-Create 3–6 vertical slices, ordered by dependency:
+Create 3–8 vertical slices, ordered by dependency:
 
 For each phase:
 - **Name**: Short descriptive label

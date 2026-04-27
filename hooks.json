@@ -21,6 +21,20 @@
         "bash": "bash hooks/scripts/pre-branch-fetch.sh",
         "powershell": "pwsh -NoProfile -File hooks/scripts/pre-branch-fetch.ps1",
         "timeoutSec": 30
+      },
+      {
+        "type": "command",
+        "bash": "bash hooks/scripts/crispy-metrics-start.sh",
+        "powershell": "pwsh -NoProfile -File hooks/scripts/crispy-metrics-start.ps1",
+        "timeoutSec": 5
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "bash hooks/scripts/crispy-metrics-record.sh",
+        "powershell": "pwsh -NoProfile -File hooks/scripts/crispy-metrics-record.ps1",
+        "timeoutSec": 10
       }
     ]
   }

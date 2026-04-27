@@ -225,7 +225,68 @@ Timeouts are safety nets for infrastructure failures (hung processes, unresponsi
 
 ---
 
-## 11. Reference
+## 11. Project Workstream (Greenfield)
+
+The CRISPY plugin ships **two parallel orchestrators**:
+
+| Orchestrator      | Workstream | Entry point        | Folder root              | When to use                                                            |
+|-------------------|------------|--------------------|--------------------------|------------------------------------------------------------------------|
+| `crispy`          | Feature    | `@crispy`          | `crispy-docs/specs/`     | Adding/changing features in an existing codebase.                      |
+| `crispy-project`  | Project    | `@crispy-project`  | `crispy-docs/projects/`  | Greenfield builds, multi-feature programs, "from scratch" architectures.|
+
+Both follow this protocol verbatim — same prompt contract (§2), same `crispy-result` shape (§3), same severity gating (§6), same background-vs-sync rules (§4), same failure handling (§8).
+
+### 11.1 Project-level role table (extends §1)
+
+| Role                  | Agent                       | Spawned by         | Concurrency | Purpose                                                                                                  |
+|-----------------------|-----------------------------|--------------------|-------------|----------------------------------------------------------------------------------------------------------|
+| Project orchestrator  | `crispy-project`            | User               | n/a         | Owns the project-level 6 phases; decomposes into features; chains into per-feature `crispy` runs.        |
+| Project Clarify       | `crispy-vision`             | `crispy-project`   | sync        | Produces `vision.md`. May emit `domain_area_identified` interim signal.                                  |
+| Project Research      | `crispy-domain-research`    | `crispy-project`   | sync or bg  | Produces `domain-research.md`. **Blind to `vision.md`.** Internal fan-out at areas ≥ 3.                  |
+| Project Intention     | `crispy-architecture`       | `crispy-project`   | sync        | Produces `architecture.md` with stable section anchors that feature-level intents inherit.               |
+| Repo scaffold         | `crispy-scaffold`           | `crispy-project`   | sync        | Initializes local repos per `architecture.md §3, §4`. **No remote API calls** (locked default).          |
+| Project Structure     | `crispy-feature-map`        | `crispy-project`   | sync        | Produces `feature-map.md` (DAG of features). Auto-splits oversized features (>10 estimated slices).     |
+| Project Plan          | `crispy-roadmap`            | `crispy-project`   | sync        | Produces `roadmap.md` (milestones + parallel waves; no calendar dates).                                  |
+| Project Yield         | `crispy-project-yield`      | `crispy-project`   | sync        | Produces `project-checklist.md` and `project-manifest.yaml` (machine-readable hand-off).                |
+
+### 11.2 Project-level spawn sites (extends §9)
+
+| Site                            | Caller                | Mode        | Sub-agent                         | Trigger                                                       |
+|---------------------------------|-----------------------|-------------|-----------------------------------|---------------------------------------------------------------|
+| Background domain research      | `crispy-project`      | background  | `crispy-domain-research`          | `domain_area_identified` signal during Vision (Phase 1).      |
+| Architecture review gate        | `crispy-project`      | sync        | `spec-review` then `code-review`  | After `architecture.md` written.                              |
+| Repo scaffold                   | `crispy-project`      | sync        | `crispy-scaffold` (autopilot opt) | After architecture gate passes; only if user opts in (interactive) or autopilot. |
+| Feature-map review gate         | `crispy-project`      | sync        | `spec-review` then `code-review`  | After `feature-map.md` written.                               |
+| Roadmap review gate             | `crispy-project`      | sync        | `spec-review` then `code-review`  | After `roadmap.md` written.                                   |
+| Feature hand-off (sequential)   | `crispy-project`      | sync (chain)| `crispy.agent.md` per feature     | Autopilot `chain: true`; one feature at a time.               |
+| Feature fleet                   | `crispy-project`      | parallel    | `crispy.agent.md` × N             | Autopilot `chain: true`; ≥ 2 features in same wave with no pending project-level deps. |
+
+### 11.3 Inherited project context (additive feature workstream changes)
+
+When `@crispy <feature-folder>` is invoked with a path matching `**/crispy-docs/projects/NNN-*/features/MMM-*/`, the feature orchestrator detects the project parent and:
+
+- Adds `<project-folder>/domain-research.md` to `crispy-research`'s inline context as `inherited_domain_research`. The researcher then scopes blind code analysis to the (now-scaffolded) repo only and skips redundant domain queries. Blindness against `spec.md` is unchanged.
+- Adds `<project-folder>/architecture.md` to `crispy-intent`'s MUST READ. Intent must reference architecture sections by anchor and MUST NOT contradict project-level decisions; the two-stage review gate enforces this.
+
+Standalone feature runs (no project parent) are byte-for-byte unchanged.
+
+### 11.4 Auto-split rule for oversized features
+
+`crispy-feature-map` estimates a slice count per feature. If the estimate exceeds **10 slices**, the feature is auto-split into sibling features (e.g., `payments-core` + `payments-refunds`). Each child carries `auto_split_from: <parent-name>` in the machine-readable graph and an entry in the **Auto-Split Log**. Combined with `crispy-structure`'s soft cap of 3–8 slices per feature, this keeps every feature within the existing slice-execution pipeline.
+
+### 11.5 Anti-patterns (extends §10)
+
+- ❌ Project orchestrator re-running phase work inline instead of spawning the appropriate project-level agent.
+- ❌ `crispy-domain-research` reading `vision.md` (breaks blindness — same rule as feature-level researcher and `spec.md`).
+- ❌ `crispy-feature-map` enumerating features the project's themes don't cover.
+- ❌ `crispy-roadmap` including calendar dates or time estimates.
+- ❌ `crispy-scaffold` calling remote APIs (locked default: local-only).
+- ❌ Feature-level `crispy-intent` overriding decisions in the inherited `architecture.md` without flagging a `high` finding first.
+- ❌ Re-deriving `feature_graph` from `feature-map.md` prose instead of using the verbatim block in `project-manifest.yaml`.
+
+---
+
+## 12. Reference
 
 - Prompt skeleton: `templates/subagent-prompt.template.md`
 - Spawn skill: `skills/spawn-subagent/SKILL.md`

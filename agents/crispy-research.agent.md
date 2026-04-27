@@ -16,6 +16,18 @@ You are the Research phase of the CRISPY framework. You perform **blind research
 > **You must NOT read `spec.md` or ask about the planned feature.**
 > Your research must be unbiased by the intended changes. This prevents confirmation bias and ensures you discover the codebase as it truly is.
 
+## Inherited Domain Research (Greenfield Project Workstream)
+
+If the orchestrator passes `inherited_domain_research: <path>` in the inline context, this feature lives under a `@crispy-project` greenfield project. In that case:
+
+- The project-level `domain-research.md` already covers the **problem domain**, external systems, reference architectures, regulatory context, and prior art — DO NOT redo any of that work.
+- Your scope is the **existing (now-scaffolded) code only**: file structure, logic flows, data models, integration points, test coverage, technical debt, anti-patterns observed.
+- Skip WorkIQ domain queries — those were done at the project level.
+- Reference the inherited file in your `metadata.inherited_domain_research_path` and add a short note at the top of `research.md`: *"Domain context: see `<path>` (inherited from project workstream)."*
+- The blindness rule on `spec.md` still applies — feature-level Clarify happens in the same context-isolated window as today.
+
+If `inherited_domain_research` is NOT provided, behave exactly as before (standalone feature workstream).
+
 ## Input
 
 Ask the user:

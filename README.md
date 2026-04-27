@@ -5,6 +5,8 @@
 A GitHub Copilot CLI plugin that implements the CRISPY framework for structured, high-quality AI-assisted software development. Produces spec-kit-style artifacts, **coordinates sub-agents across phases** to keep contexts clean and parallelize work, drives slice-by-slice TDD execution after planning is done, and manages multi-repo branch operations.
 
 > 🆕 **v0.2 — Sub-Agent Orchestration.** The orchestrator now spawns each phase as its own sub-agent, runs research in the background while clarification continues, gates with rubber-duck reviews, and chains into a new `crispy-implement` agent that drives slice-by-slice TDD using sub-agent pairs. See [`SUBAGENTS.md`](./SUBAGENTS.md) for the protocol.
+>
+> 🆕 **v0.4 — Greenfield Project Workstream.** A second orchestrator, `@crispy-project`, drives the same 6 CRISPY phases at the **project** level: vision → domain-research → architecture (+ local repo scaffold) → feature-map (DAG of features, with >10-slice auto-split) → roadmap (milestones, no dates) → project-checklist/manifest. Each decomposed feature then runs through the existing `@crispy` workflow with **inherited project context** (architecture.md and domain-research.md become MUST-READ for feature-level Intent and Research). Both workstreams remain available standalone. See [`SUBAGENTS.md §11`](./SUBAGENTS.md).
 
 ## Installation
 
@@ -21,7 +23,37 @@ copilot plugin list
 
 ## Quick Start
 
-### Full CRISPY Workflow (Recommended)
+### Two Workstreams
+
+CRISPY ships two parallel orchestrators. Pick by **what kind of work you're doing**, not by team size or repo count:
+
+| Workstream | Entry point        | Use when                                                          |
+|------------|--------------------|-------------------------------------------------------------------|
+| Feature    | `@crispy`          | Adding/changing a feature in an **existing codebase**.            |
+| Project    | `@crispy-project`  | **Greenfield**, large-scale, multi-feature builds from scratch.   |
+
+Both follow the same 6-phase CRISPY protocol with the same sub-agent orchestration; they differ in artifacts and the extra scaffold step in Phase 3.
+
+### Greenfield Project Workflow
+
+```
+@crispy-project "Build a B2B invoicing platform from scratch"
+```
+
+The project orchestrator walks 6 PROJECT phases:
+
+1. **Clarify** — `vision.md` (themes, MVP, constraints — NOT a feature list)
+2. **Research** — `domain-research.md` (blind to vision; problem domain, prior art, regulatory, reference architectures)
+3. **Intention** — `architecture.md` (tech stack, repos, service boundaries, data model) → then `crispy-scaffold` initializes local repos
+4. **Structure** — `feature-map.md` (DAG of features; oversized features auto-split when estimate > 10 slices)
+5. **Plan** — `roadmap.md` (milestones + parallel waves, **no calendar dates**)
+6. **Yield** — `project-checklist.md` + `project-manifest.yaml`
+
+Then per-feature: `@crispy crispy-docs/projects/NNN/features/MMM/` runs the standard CRISPY feature workflow with **inherited project context** (architecture.md + domain-research.md become MUST-READ for feature-level Intent and Research). Or invoke `@crispy-project autopilot chain:true` to walk the feature DAG automatically (independent features fan out as a feature-fleet).
+
+> **Scaffold defaults (locked):** `crispy-scaffold` reads stack from `architecture.md`, asks only on ambiguity, initializes **local** git repos, and prints copy-paste commands for remote creation (e.g., `gh repo create …`) — it does NOT call remote APIs.
+
+### Standalone Feature Workflow (Recommended for existing codebases)
 
 ```
 @crispy "Add user authentication to the platform"
@@ -40,12 +72,22 @@ The orchestrator walks you through all 6 phases:
 Use any phase independently:
 
 ```
+# Feature workstream
 @crispy-clarify "Add OAuth login support"
 @crispy-research "Examine the auth module and user service"
 @crispy-intent "Review spec and research for feature 003"
 @crispy-structure "Define slices for feature 003"
 @crispy-plan "Create tactical plan for feature 003"
 @crispy-yield "Validate feature 003 is ready for implementation"
+
+# Project workstream (greenfield)
+@crispy-vision "Capture vision for the new platform"
+@crispy-domain-research "Research the B2B invoicing domain"
+@crispy-architecture "Design architecture for the new platform"
+@crispy-scaffold "Initialize repos per architecture.md"
+@crispy-feature-map "Decompose project into features"
+@crispy-roadmap "Sequence features into milestones"
+@crispy-project-yield "Validate project is ready for feature runs"
 ```
 
 ### Implementation Agent (post-Yield)
@@ -100,25 +142,42 @@ CRISPY has its own parallel execution (`mode:fleet` on `crispy-implement`) that 
 
 ## Artifact Output
 
-Artifacts are stored in a `crispy-docs` directory:
+Artifacts are stored in a `crispy-docs` directory. Two top-level subfolders, one per workstream:
 
 ```
 crispy-docs/
-└── specs/
-    ├── 001-user-authentication/
-    │   ├── spec.md                       # C: User stories, requirements, acceptance criteria
-    │   ├── research.md                   # R: Blind codebase analysis (with optional fan-out merge)
-    │   ├── intent.md                     # I: Architecture direction, affected repos
-    │   ├── outline.md                    # S: Vertical slices + machine-readable slice dependency graph
-    │   ├── plan.md                       # P: File-level tactical plan + machine-readable task graph
-    │   ├── tasks.md                      # P: Task breakdown by user story
-    │   ├── checklist.md                  # Y: Quality gates, pre-implementation checks
-    │   ├── implementation-manifest.yaml  # Y: Hand-off manifest consumed by crispy-implement
-    │   ├── NNN-feature-name.code-workspace  # VSCode multi-root workspace (multi-repo only)
-    │   └── contracts/                    # API/interface contracts
-    │       └── auth-api.md
-    └── 002-graphql-support/
-        └── ...
+├── specs/                                 # Feature workstream
+│   ├── 001-user-authentication/
+│   │   ├── spec.md                       # C: User stories, requirements, acceptance criteria
+│   │   ├── research.md                   # R: Blind codebase analysis (with optional fan-out merge)
+│   │   ├── intent.md                     # I: Architecture direction, affected repos
+│   │   ├── outline.md                    # S: Vertical slices + machine-readable slice dependency graph
+│   │   ├── plan.md                       # P: File-level tactical plan + machine-readable task graph
+│   │   ├── tasks.md                      # P: Task breakdown by user story
+│   │   ├── checklist.md                  # Y: Quality gates, pre-implementation checks
+│   │   ├── implementation-manifest.yaml  # Y: Hand-off manifest consumed by crispy-implement
+│   │   ├── NNN-feature-name.code-workspace  # VSCode multi-root workspace (multi-repo only)
+│   │   └── contracts/                    # API/interface contracts
+│   │       └── auth-api.md
+│   └── 002-graphql-support/
+│       └── ...
+└── projects/                              # Project workstream (greenfield)
+    └── 001-acme-platform/
+        ├── vision.md                     # C: Themes, MVP, constraints (NOT a feature list)
+        ├── domain-research.md            # R: Blind problem-domain research (no vision leakage)
+        ├── architecture.md               # I: Tech stack, repos, service boundaries (with stable section anchors)
+        ├── scaffold-report.md            # I: Local repos initialized + remote-creation commands
+        ├── feature-map.md                # S: Feature DAG + auto-split log
+        ├── roadmap.md                    # P: Milestones + parallel waves (no dates)
+        ├── project-checklist.md          # Y: Project-level quality gates
+        ├── project-manifest.yaml         # Y: Hand-off manifest consumed by per-feature @crispy runs
+        ├── review-gates.yaml
+        └── features/
+            ├── 001-user-accounts/        # Each feature inherits architecture.md + domain-research.md
+            │   ├── spec.md ... implementation-manifest.yaml   # Standard feature artifacts
+            │   └── contracts/
+            └── 002-billing-core/
+                └── ...
 ```
 
 ### Location Behavior
@@ -207,7 +266,7 @@ crispy-plugin/
 │   ├── crispy-implement.agent.md     # Post-Yield TDD slice executor (sequential / fleet / fast_mode)
 │   ├── crispy-scan.agent.md
 │   └── crispy-branch.agent.md        # Has autopilot non-interactive mode
-├── skills/                           # 16 reusable skills
+├── skills/                           # 17 reusable skills
 │   ├── create-spec/
 │   ├── create-research/              # Now supports fan-out mode
 │   ├── create-intent/
@@ -224,7 +283,8 @@ crispy-plugin/
 │   ├── aggregate-research/           # NEW — merges fan-out research fragments
 │   ├── run-tdd-slice/                # test-author (RED) → implementer (GREEN) → spec-review → code-review loop
 │   ├── git-worktree-isolation/       # NEW — isolated worktrees for parallel slices
-│   └── finish-branch/                # NEW — verify, present PR/push/keep/discard, cleanup
+│   ├── finish-branch/                # NEW — verify, present PR/push/keep/discard, cleanup
+│   └── generate-metrics-report/      # NEW — static HTML reports of token/time/premium-request usage per phase
 ├── templates/                        # 9 artifact templates
 │   └── subagent-prompt.template.md   # NEW — required skeleton for every sub-agent prompt
 └── .github/plugin/
@@ -240,6 +300,22 @@ The plugin works out of the box. Optional configuration:
 - **Hooks**: Customize `hooks.json` for additional pre-branch checks
 
 
+### Metrics & Reporting
+
+CRISPY automatically captures per-phase **wall-clock time** and an **estimated premium-request count** for every CRISPY sub-agent invocation (via the bundled `crispy-metrics-start` / `crispy-metrics-record` hooks). Records land in `<feature-folder>/.metrics.jsonl`.
+
+Generate static HTML reports at any time:
+
+```
+skill generate-metrics-report
+```
+
+This writes one `metrics.html` per feature, one per project (rolling up its child features), and a top-level `crispy-docs/reports/index.html` index linking everything. Standalone features and projects each get their own page; everything is self-contained (no JS frameworks, no CDN).
+
+- **Premium Requests** are computed as `invocations × per-model multiplier` using a built-in table aligned with [GitHub's billing docs](https://docs.github.com/en/copilot/how-tos/manage-and-track-spending/monitor-premium-requests). This is a **lower bound** because each sub-agent makes many internal LLM turns the hook cannot observe — cross-check the authoritative number at `github.com/settings/billing` → Premium Request Analytics.
+- **Multipliers are overridable** via `crispy-docs/.metrics-multipliers.json`.
+- **Disable capture** with `CRISPY_METRICS_DISABLED=1`.
+
 ### Hooks
 
 Hook commands live in `hooks.json` and delegate to cross-platform scripts under `hooks/scripts/` (each hook ships a `.sh` + `.ps1` pair). Scripts read their JSON payload from stdin and may emit `{"permissionDecision": "deny", "permissionDecisionReason": "..."}` to block the tool call (see [hooks-configuration](https://docs.github.com/en/copilot/reference/hooks-configuration)).
@@ -248,6 +324,8 @@ Active hooks:
 
 - `preToolUse: pre-branch-check` — denies `git checkout -b` / `git switch -c` / `git branch -c` when the working tree is dirty (override with `CRISPY_ALLOW_DIRTY=1`).
 - `preToolUse: pre-branch-fetch` — pre-fetches `origin/develop` before a new branch is created (advisory only).
+- `preToolUse: crispy-metrics-start` — records the start timestamp of every CRISPY sub-agent invocation (`task` tool) into `$TEMP/crispy-metrics-pending/`.
+- `postToolUse: crispy-metrics-record` — pairs with the start record, computes elapsed time + token approximations + premium-request estimate, and appends a JSONL row to the owning feature/project's `.metrics.jsonl`. Disable with `CRISPY_METRICS_DISABLED=1`.
 - `userPromptSubmit: inject-crispy-protocol` — telemetry only. Per the docs, `userPromptSubmit` output is ignored, so the protocol reminder lives in `templates/subagent-prompt.template.md` and `SUBAGENTS.md`, not in this hook.
 
 ### Two-stage review

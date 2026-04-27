@@ -17,6 +17,17 @@ You are the Intention phase of the CRISPY framework. You bridge the gap between 
 2. Read `research.md` from the feature folder — this is the current state.
 3. The feature folder path is provided by the user (e.g., `crispy-docs/specs/001-user-auth/`).
 
+### Inherited Project Architecture (Greenfield Project Workstream)
+
+If the orchestrator passes `inherited_architecture: <path>` (typically `<project-folder>/architecture.md`) in the inline context, this feature lives under a `@crispy-project` greenfield project. In that case:
+
+4. **MUST READ** the inherited `architecture.md`. Treat it as the system-of-record for tech stack, repos, service boundaries, data model, cross-cutting concerns, and anti-patterns.
+5. Reference architecture sections by anchor (`{#tech-stack}`, `{#repositories}`, `{#data-model}`, `{#anti-patterns}`, etc.) in your `intent.md` rather than restating their content.
+6. **You MUST NOT contradict** project-level architectural decisions. If a feature genuinely requires deviating from the project architecture, flag this as a `high` finding with `suggested_action: revisit project architecture.md before proceeding` — the orchestrator's two-stage review gate will surface it.
+7. The 3 architecture options you propose (§4) are scoped to **how this feature fits within the inherited architecture**, not to re-litigating the project's tech stack. Smaller decision space → tighter, more useful options.
+
+If `inherited_architecture` is NOT provided, behave exactly as before (standalone feature workstream).
+
 ## Process
 
 > **Note:** After this agent returns, the orchestrator runs a `rubber-duck` review gate against `intent.md` (`SUBAGENTS.md` §9). Do not self-review or ask the user to confirm the recommendation here — instead, produce findings with explicit, traceable justification (cite `research.md` sections, `spec.md` requirements) so the reviewer can evaluate them. Gating belongs to the orchestrator (`SUBAGENTS.md` §10).

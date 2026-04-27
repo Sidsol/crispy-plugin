@@ -60,12 +60,35 @@ Before starting, detect the working mode:
 
 ## Feature Folder Setup
 
+If the user invoked you with an explicit feature folder path, use it as-is. Otherwise:
+
 1. Scan `crispy-docs/specs/` for existing `NNN-*` folders.
 2. Auto-increment the number (zero-pad to 3 digits).
 3. Ask user for a short kebab-case feature name.
 4. Create `crispy-docs/specs/NNN-feature-name/`.
 
 The resolved feature folder path is passed inline to every spawned phase agent — they do not re-derive it.
+
+## Inherited Project Context (Greenfield Workstream)
+
+If the resolved feature folder path matches the pattern `**/crispy-docs/projects/NNN-*/features/MMM-*/` (i.e. the feature lives under a project from the `@crispy-project` greenfield workstream), set `project_folder = <ancestor>/crispy-docs/projects/NNN-*/` and treat the project's artifacts as **inherited MUST-READ context** for downstream phase agents:
+
+- **`crispy-research`** — pass `inherited_domain_research: <project_folder>/domain-research.md` so it scopes blind research to the (now-scaffolded) code only and does NOT redo domain analysis. The blindness rule on `spec.md` still applies.
+- **`crispy-intent`** — add `<project_folder>/architecture.md` to MUST READ. The intent agent must reference architecture sections by anchor (`{#tech-stack}`, `{#data-model}`, `{#anti-patterns}`, etc.) and MUST NOT contradict project-level architectural decisions. The two-stage review gate enforces this.
+
+If the path does NOT match the project pattern (the standalone feature workstream), behavior is unchanged — no inheritance, no project context.
+
+Detection check (run once during Feature Folder Setup):
+
+```powershell
+# Pseudo-logic
+if ($featureFolder -match '\\crispy-docs\\projects\\\d{3}-[^\\]+\\features\\\d{3}-[^\\]+\\?$') {
+    $projectFolder = (Resolve-Path "$featureFolder\..\..").Path
+    # Pass $projectFolder/architecture.md and $projectFolder/domain-research.md as inherited context
+}
+```
+
+Carry the resolved `project_folder` (or `null`) in your internal state for the duration of the run; pass it into every phase-agent prompt's `Context provided inline` block when present.
 
 ---
 
