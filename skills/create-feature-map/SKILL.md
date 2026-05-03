@@ -1,6 +1,7 @@
 ---
 name: create-feature-map
 description: "Decompose a project into a dependency graph of feature folders, with an auto-split rule for oversized features"
+user-invocable: false
 ---
 
 # Create Feature Map

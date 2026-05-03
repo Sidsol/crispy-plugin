@@ -2,6 +2,7 @@
 name: crispy-project-yield
 description: "CRISPY Project Phase Y: Pre-handoff validation and project-manifest generation (greenfield workstream)"
 tools: ["execute", "edit", "read", "search"]
+user-invocable: false
 ---
 
 # CRISPY Project Phase Y — Project Yield

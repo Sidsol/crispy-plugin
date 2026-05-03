@@ -1,6 +1,6 @@
 ---
 name: crispy-project
-description: "CRISPY Project Orchestrator: Greenfield large-scale project workflow (vision → architecture → scaffold → features)"
+description: "Plan a greenfield project through CRISPY vision, architecture, scaffold, feature-map, roadmap, and yield."
 tools: ["execute", "edit", "read", "search", "agent", "web", "workiq/*"]
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: scaffold-repos
 description: "Initialize local git repos and run framework scaffolders per architecture.md (no remote API calls)"
+user-invocable: false
 ---
 
 # Scaffold Local Repositories
@@ -13,7 +14,7 @@ Initialize each repo from `architecture.md §4 Repositories` as a local git repo
 
 ## When NOT to use
 
-- For per-feature branch creation in existing repos — that's `crispy-branch`'s job.
+- For repo-wide per-feature branch creation in existing repos — CRISPY no longer performs that during planning.
 - For projects where repos already exist (in that case skip; record `status: pre-existing` in `scaffold-report.md`).
 
 ## Process
@@ -86,4 +87,4 @@ Per `SUBAGENTS.md §8`: retry once on transient failure (network, file lock), su
 
 ## Hand-off
 
-After scaffolding, the orchestrator runs `crispy-feature-map` (which now has real repo paths to reference). Feature-level CRISPY runs use the existing `crispy-branch` agent against these scaffolded repos.
+After scaffolding, the orchestrator runs `crispy-feature-map` (which now has real repo paths to reference). Feature-level CRISPY runs create focused workspaces for affected repos and defer any automatic branch creation to per-slice worktree branches during implementation fleet mode.

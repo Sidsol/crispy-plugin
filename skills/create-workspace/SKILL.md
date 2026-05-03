@@ -1,22 +1,22 @@
 ---
 name: create-workspace
-description: "Generate a VSCode multi-root workspace file for a CRISPY feature's affected repositories and open it"
+description: "Generate and optionally open a VS Code multi-root workspace for affected CRISPY repositories. Use after Intent identifies multiple repos."
 ---
 
 # Create VSCode Workspace
 
-Generates a `.code-workspace` file that contains only the repositories relevant to the current CRISPY feature, plus the `crispy-docs` folder. This gives the user a focused, scoped view of exactly the repos being changed — no clutter from unrelated projects.
+Generates a `.code-workspace` file that contains only the repositories relevant to the current CRISPY feature, plus the `crispy-docs` folder. This gives the user a focused, scoped view of exactly the repos being changed without mutating git branches.
 
 ## When to use
 
-- After `crispy-branch` successfully creates feature branches across repos (Step 8).
+- After Intent confirms multiple affected repositories.
 - When the user wants a focused multi-repo VSCode view for a CRISPY feature.
 - Can be called standalone by any agent that knows the affected repos and feature folder.
 
 ## When NOT to use
 
 - Single-repo mode where only one repo is affected — a regular `code <repo>` is simpler.
-- When `crispy-branch` skipped or failed on ALL repos (no successful branches to open).
+- When no affected repositories were confirmed.
 
 ## Inputs
 
@@ -131,6 +131,7 @@ Per `SUBAGENTS.md` §8:
 ## Anti-patterns
 
 - ❌ Using absolute paths in the `.code-workspace` file (breaks portability).
-- ❌ Including repos that failed or were skipped during branch creation.
+- ❌ Creating, switching, pulling, fetching, stashing, deleting, or pushing git branches.
+- ❌ Including repos that were not confirmed as affected by Intent or `crispy-scan`.
 - ❌ Overriding user-level VSCode settings (theme, keybindings, etc.) in the workspace settings.
 - ❌ Treating a `code` CLI failure as a skill failure — the artifact was still created.

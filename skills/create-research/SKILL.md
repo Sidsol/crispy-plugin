@@ -1,6 +1,7 @@
 ---
 name: create-research
 description: "Generate a research.md from blind codebase analysis"
+user-invocable: false
 ---
 
 # Create Blind Research Document

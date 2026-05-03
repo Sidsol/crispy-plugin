@@ -1,6 +1,7 @@
 ---
 name: init-crispy-docs
 description: "Initialize crispy-docs folder structure for a new feature"
+user-invocable: false
 ---
 
 # Initialize CRISPY Docs Structure
@@ -60,7 +61,7 @@ created: {YYYY-MM-DD}
 The `review-gates.yaml` placeholder uses a different format:
 
 ```yaml
-# Review gates — populated by crispy orchestrator after rubber-duck reviews
+# Review gates — populated by crispy orchestrator after spec-review + code-review gates
 gates: {}
 ```
 

@@ -1,6 +1,7 @@
 ---
 name: create-outline
 description: "Generate an outline.md with vertical slice definitions"
+user-invocable: false
 ---
 
 # Create Vertical Slice Outline

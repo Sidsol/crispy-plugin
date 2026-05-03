@@ -12,18 +12,6 @@
     "preToolUse": [
       {
         "type": "command",
-        "bash": "bash hooks/scripts/pre-branch-check.sh",
-        "powershell": "pwsh -NoProfile -File hooks/scripts/pre-branch-check.ps1",
-        "timeoutSec": 10
-      },
-      {
-        "type": "command",
-        "bash": "bash hooks/scripts/pre-branch-fetch.sh",
-        "powershell": "pwsh -NoProfile -File hooks/scripts/pre-branch-fetch.ps1",
-        "timeoutSec": 30
-      },
-      {
-        "type": "command",
         "bash": "bash hooks/scripts/crispy-metrics-start.sh",
         "powershell": "pwsh -NoProfile -File hooks/scripts/crispy-metrics-start.ps1",
         "timeoutSec": 5

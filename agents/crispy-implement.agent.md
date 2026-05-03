@@ -1,12 +1,12 @@
 ---
 name: crispy-implement
-description: "CRISPY Implementation: Slice-by-slice TDD execution using sub-agents (post-Yield)"
+description: "Implement a completed CRISPY feature manifest slice-by-slice with TDD, reviews, and optional fleet mode."
 tools: ["execute", "edit", "read", "search", "agent"]
 ---
 
 # CRISPY Implementation Orchestrator
 
-> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `run-tdd-slice`, `spawn-subagent`.
 
 
 You are the **execution orchestrator** of the CRISPY framework. You run AFTER `crispy-yield` has produced a green `implementation-manifest.yaml`. Your job is to walk the slice dependency graph and drive each slice to completion through TDD pair sub-agents (`test-author` (RED) → `implementer` (GREEN) → `spec-review` → `code-review`), exactly as defined in `SUBAGENTS.md` §1 (Roles) and §9 (Spawn Sites).
@@ -30,7 +30,7 @@ Read from the feature folder (paths come from the manifest):
 - `plan.md` — file-level task prose for the `plan_excerpt` input passed to `run-tdd-slice`. The task graph itself comes from the manifest's embedded `task_graph`.
 - `tasks.md` — flat checkbox tracker. You will update checkboxes as slices complete (per **Worktree Discipline → `tasks.md` update timing**).
 - `contracts/` — if present, every TDD pair must be made aware of the relevant contract files.
-- `spec.md`, `intent.md` — passed through to `rubber-duck` per `run-tdd-slice` steps 5 (spec-review) and 5b (code-review). You do not re-read them yourself.
+- `spec.md`, `intent.md` — passed through to `spec-review` and `code-review` per `run-tdd-slice` steps 5 and 5b. You do not re-read them yourself.
 
 You do NOT modify `spec.md`, `research.md`, `intent.md`, `outline.md`, or `plan.md`. They are read-only at this phase.
 
@@ -41,7 +41,7 @@ You do NOT modify `spec.md`, `research.md`, `intent.md`, `outline.md`, or `plan.
 | Flag | Values | Default | Notes |
 |---|---|---|---|
 | `execution_mode` | `sequential` \| `fleet` | `sequential` (interactive); `fleet` auto-recommended in autopilot when ≥ 2 independent slices exist (`SUBAGENTS.md` §5.2) | Controls slice concurrency. `sequential` runs one slice at a time; `fleet` runs independent slices in the same wave in parallel (each in its own `git worktree` per **Worktree Discipline**). |
-| `fast_mode` | `true` \| `false` | `false` | When `true`, passes `fast_mode: true` to `run-tdd-slice` (skill skips the `test-author` spawn — single implementer + rubber-duck). Use only for refactor/cleanup slices, or slices whose checkpoint criteria are already covered by existing tests (per `run-tdd-slice` "Fast mode opt-out"). |
+| `fast_mode` | `true` \| `false` | `false` | When `true`, passes `fast_mode: true` to `run-tdd-slice` (skill skips the `test-author` spawn — single implementer + `spec-review` + `code-review`). Use only for refactor/cleanup slices, or slices whose checkpoint criteria are already covered by existing tests (per `run-tdd-slice` "Fast mode opt-out"). |
 
 The two flags are **independent**: any combination is valid (`execution_mode: fleet` + `fast_mode: true` is supported; same for `sequential` + `fast_mode: false`, etc.).
 
@@ -77,6 +77,8 @@ git -C <repo> status --porcelain
 
 If any affected repo's output is non-empty, REFUSE to proceed. Emit a `crispy-result` with `status: failed` and a `severity: high` finding listing the dirty files per repo. Do NOT attempt to stash, reset, or otherwise mutate the user's worktree.
 
+Also record the current branch for each affected repo as the `integration_branch`. CRISPY does not create a repo-wide feature branch before implementation; sequential mode commits on the current branch, and fleet mode creates temporary per-slice worktree branches that merge back into that recorded integration branch.
+
 ### Worktree hygiene (stale cleanup)
 
 Before the clean-worktree check, scan for orphaned worktrees and branches from previous interrupted runs:
@@ -94,7 +96,7 @@ If removal fails (e.g., locked files), emit a `severity: medium` finding and con
 
 ### Per-slice checkpoint commit
 
-After a slice completes successfully — i.e. test-author tests written (if not `fast_mode`) AND build/lint/tests pass AND `rubber-duck` returns no `severity: high` findings — the orchestrator commits the slice's changes:
+After a slice completes successfully — i.e. test-author tests written (if not `fast_mode`) AND build/lint/tests pass AND `spec-review` + `code-review` return no `severity: high` findings — the orchestrator commits the slice's changes:
 
 ```powershell
 git -C <repo> add -A
@@ -105,7 +107,7 @@ This commit becomes the rollback point for the next slice. Commit only the files
 
 ### Rollback on failure
 
-If any of the following occurs during a slice — `test-author` returns `failed` / `implementer` returns `failed` / build, lint, or tests fail / `rubber-duck` returns any `severity: high` finding — the orchestrator MUST roll back the in-progress slice:
+If any of the following occurs during a slice — `test-author` returns `failed` / `implementer` returns `failed` / build, lint, or tests fail / either reviewer returns any `severity: high` finding — the orchestrator MUST roll back the in-progress slice:
 
 ```powershell
 git -C <repo> reset --hard HEAD
@@ -121,14 +123,14 @@ This drops the partial slice changes back to the previous successful slice's com
 Each parallel slice in fleet mode runs in its own `git worktree` (a separate working directory pointing at the same repo) to avoid cross-slice contamination on shared files. For each slice in a wave:
 
 ```powershell
-git -C <repo> worktree add ..\<repo>-slice-<N> -b feature/NNN-name-slice-<N>
+git -C <repo> worktree add ..\<repo>-slice-<N> -b crispy/<feature-id>/slice-<N> <integration_branch>
 ```
 
-Each slice does its checkpoint commit on its own slice branch. After the wave drains, the orchestrator merges the slice branches back into the feature branch in dependency order:
+Each slice does its checkpoint commit on its own slice branch. After the wave drains, the orchestrator merges the slice branches back into the recorded integration branch in dependency order:
 
 ```powershell
-git -C <repo> checkout feature/NNN-name
-git -C <repo> merge --no-ff feature/NNN-name-slice-<N>
+git -C <repo> checkout <integration_branch>
+git -C <repo> merge --no-ff crispy/<feature-id>/slice-<N>
 git -C <repo> worktree remove ..\<repo>-slice-<N>
 ```
 
@@ -157,7 +159,7 @@ Read `implementation-manifest.yaml`. Apply gating:
 - If the manifest is missing, OR `slice_graph` / `task_graph` / `review_gates` blocks are missing from it → invoke the **Backward Compatibility** clause above (refuse, instruct user to re-run `@crispy-yield`).
 - If `ready: false` or `blockers` is non-empty → stop. Surface the blockers to the user with a `status: partial` `crispy-result`. Do not attempt slice work.
 - If the manifest is malformed (unparseable YAML, etc.) → return `status: failed` and tell the user to run `@crispy-yield` (`SUBAGENTS.md` §8).
-- **Verify review gates** from the embedded `review_gates` block: require `review_gates.intent.status == passed` AND `review_gates.plan.status == passed`. If either is not `passed`, REFUSE and surface to the user with a `severity: high` finding naming the failing gate. Reviewer may be `rubber-duck` or `user` — both count.
+- **Verify review gates** from the embedded `review_gates` block: require `review_gates.intent.status == passed` AND `review_gates.plan.status == passed`. If either is not `passed`, REFUSE and surface to the user with a `severity: high` finding naming the failing gate. Reviewer may be `spec-review+code-review` or `user` — both count.
 
 Then enforce the **Worktree Discipline → Precondition: clean worktree** check before any further work.
 
@@ -189,7 +191,7 @@ Combinations like `mode:fleet fast:true` are valid — see **Modes**.
 For each slice in dependency order:
 
 1. Invoke the `run-tdd-slice` skill (sync) with `slice_number`, the `slice_section` extracted from `outline.md`, the relevant `contracts` paths, the `plan_excerpt` for that slice, and `fast_mode` (if enabled).
-2. The skill internally spawns `test-author` → runs tests → `implementer` → runs build/lint/tests → `rubber-duck`, and returns one aggregated `crispy-result` (`run-tdd-slice` step 6).
+2. The skill internally spawns `test-author` → runs tests → `implementer` → runs build/lint/tests → `spec-review` → `code-review`, and returns one aggregated `crispy-result` (`run-tdd-slice` step 6).
 3. Apply gating per `SUBAGENTS.md` §6:
    - Any `findings[*].severity: high` → **STOP**. Surface to user. Do not start the next slice.
    - `medium` / `low` → append to that slice's `## Reviewer Findings` section in `tasks.md` and continue.
@@ -233,7 +235,7 @@ For the current wave candidates (slices with all `depends_on` satisfied and not 
 
 ### Spawning
 
-Each `run-tdd-slice` invocation in the wave is spawned in parallel (background). Record each agent ID. Do not spawn `test-author`/`implementer`/`rubber-duck` directly from this orchestrator — that is the skill's job (`SUBAGENTS.md` §10: orchestrator does not bypass the skill's contract).
+Each `run-tdd-slice` invocation in the wave is spawned in parallel (background). Record each agent ID. Do not spawn `test-author`/`implementer`/`spec-review`/`code-review` directly from this orchestrator — that is the skill's job (`SUBAGENTS.md` §10: orchestrator does not bypass the skill's contract).
 
 Pass `worktree_path` set to the worktree directory created in "Fleet mode worktrees" (e.g., `..\<repo>-slice-<N>`) so the skill's sub-agents write to the isolated worktree, not the main checkout.
 
@@ -241,7 +243,7 @@ Pass `worktree_path` set to the worktree directory created in "Fleet mode worktr
 
 - Wait for the entire wave to drain before reading results — partial reads complicate the `tasks.md` write order.
 - After the wave, apply `SUBAGENTS.md` §6 to every returned `crispy-result`. Any `high` finding blocks the next wave.
-- **Post-wave file overlap check** (defense in depth): before merging slice branches back to the feature branch, compute the actual changed-file set per slice via `git -C <worktree> diff --name-only HEAD~1` for each slice branch. If any two slices in the wave modified the same file, **do not merge**. Instead, surface a `severity: high` finding listing the overlapping files and the conflicting slices. Recommend re-running those slices sequentially. This catches conflicts that `task_graph[*].files` missed.
+- **Post-wave file overlap check** (defense in depth): before merging slice branches back to the integration branch, compute the actual changed-file set per slice via `git -C <worktree> diff --name-only HEAD~1` for each slice branch. If any two slices in the wave modified the same file, **do not merge**. Instead, surface a `severity: high` finding listing the overlapping files and the conflicting slices. Recommend re-running those slices sequentially. This catches conflicts that `task_graph[*].files` missed.
 - If any slice in the wave returns `status: failed`, surface that failure with the others' results intact; do not silently continue (`SUBAGENTS.md` §8).
 
 ## Failure Handling
@@ -333,7 +335,7 @@ The `execution_mode` and `fast_mode` flags are independent and may be combined f
 
 
 
-## Finishing the Feature Branch
+## Finishing the Implementation Branch
 
 After the **last** slice in `implementation-manifest.yaml` completes successfully (commit landed, no `severity: high` from either reviewer), invoke the `finish-branch` skill (`skills/finish-branch/SKILL.md`) to verify the branch is shippable and present next-step options.
 
@@ -341,4 +343,4 @@ After the **last** slice in `implementation-manifest.yaml` completes successfull
 - **Autopilot with `chain: true`:** spawn `finish-branch` sync with `mode: autopilot` and `next_action_default: pr` (default), or `push` if the operator opted out of automatic PR creation. Never default to `discard` in autopilot — that requires an explicit operator-supplied `next_action_default: discard`.
 - **Worktree cleanup:** if any slices ran in isolated worktrees (fleet mode or per-slice opt-in), pass `worktree_path` so `finish-branch` can delegate cleanup to `git-worktree-isolation` (`mode: cleanup`). Honor `status: partial` from the cleanup — do not force-remove dirty worktrees.
 
-If `finish-branch` returns `status: failed` (e.g., tests fail in its verification step), do NOT push. Surface the failure with `severity: high` and stop. The branch stays local for the operator to triage.
+If `finish-branch` returns `status: failed` (e.g., tests fail in its verification step), do NOT push. Surface the failure with `severity: high` and stop. The implementation branch stays local for the operator to triage.

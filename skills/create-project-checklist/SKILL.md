@@ -1,6 +1,7 @@
 ---
 name: create-project-checklist
 description: "Generate the pre-implementation project-level CRISPY checklist (parallel to create-checklist for features)"
+user-invocable: false
 ---
 
 # Create Project Checklist

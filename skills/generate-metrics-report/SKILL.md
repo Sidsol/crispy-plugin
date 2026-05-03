@@ -1,6 +1,6 @@
 ---
 name: generate-metrics-report
-description: "Generate static HTML reports of CRISPY token usage and time spent per phase, per feature, and per project."
+description: "Generate static HTML reports from CRISPY metrics JSONL files. Use after CRISPY runs to review time and premium-request estimates."
 ---
 
 # Generate Metrics Report

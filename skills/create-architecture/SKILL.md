@@ -1,6 +1,7 @@
 ---
 name: create-architecture
 description: "Generate a project-level architecture.md (system shape, tech stack, repos, deployment) for greenfield projects"
+user-invocable: false
 ---
 
 # Create Project Architecture

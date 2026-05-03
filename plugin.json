@@ -1,14 +1,14 @@
 {
   "name": "crispy-workflow",
-  "description": "CRISPY framework plugin for structured AI-assisted development. Implements Clarify, Research, Intention, Structure, Plan, Yield phases with sub-agent orchestration, two-stage review (spec + code), post-Yield TDD slice execution with RED/GREEN enforcement, git-worktree isolation, and multi-repo branch management. v0.4 adds a parallel greenfield project workstream (@crispy-project) that decomposes large-scale projects into a feature DAG with inherited architecture and domain context.",
-  "version": "0.4.0",
+  "description": "CRISPY framework plugin for structured AI-assisted development. Implements Clarify, Research, Intention, Structure, Plan, Yield phases with hidden sub-agent orchestration, two-stage review (spec + code), post-Yield TDD slice execution with RED/GREEN enforcement, git-worktree isolation, focused multi-repo workspaces, and a greenfield project workstream (@crispy-project).",
+  "version": "0.5.0",
   "author": {
     "name": "CRISPY Engineering Team"
   },
   "homepage": "https://github.com/your-org/crispy-plugin",
   "repository": "https://github.com/your-org/crispy-plugin",
   "license": "MIT",
-  "keywords": ["crispy", "spec-driven", "workflow", "multi-repo", "branch-management", "sub-agents", "tdd", "quality-gates"],
+  "keywords": ["crispy", "spec-driven", "workflow", "multi-repo", "workspaces", "sub-agents", "tdd", "quality-gates"],
   "tags": ["copilot-cli", "plugin", "workflow", "tdd"],
   "category": "workflow",
   "agents": "agents/",

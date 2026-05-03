@@ -1,6 +1,7 @@
 ---
 name: detect-repos
 description: "Scan directories for git repositories and analyze cross-repo impact"
+user-invocable: false
 ---
 
 # Detect Repositories & Analyze Impact

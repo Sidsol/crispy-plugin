@@ -1,6 +1,7 @@
 ---
 name: aggregate-research
 description: "Merge N parallel partial-research fragments into a single research.md with conflict preservation"
+user-invocable: false
 ---
 
 # Aggregate Parallel Research Fragments

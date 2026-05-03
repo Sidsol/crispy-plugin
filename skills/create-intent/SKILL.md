@@ -1,6 +1,7 @@
 ---
 name: create-intent
 description: "Generate an intent.md with architecture analysis and recommendations"
+user-invocable: false
 ---
 
 # Create Architecture Intent Document

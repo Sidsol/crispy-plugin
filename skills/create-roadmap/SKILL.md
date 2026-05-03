@@ -1,6 +1,7 @@
 ---
 name: create-roadmap
 description: "Sequence project features into milestones (no calendar dates) with parallelization waves"
+user-invocable: false
 ---
 
 # Create Project Roadmap

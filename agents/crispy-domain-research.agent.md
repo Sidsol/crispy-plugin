@@ -2,6 +2,7 @@
 name: crispy-domain-research
 description: "CRISPY Project Phase R: Blind problem-domain & external-systems research (greenfield workstream)"
 tools: ["execute", "edit", "read", "search", "web", "workiq/*"]
+user-invocable: false
 ---
 
 # CRISPY Project Phase R — Domain Research (Blind)

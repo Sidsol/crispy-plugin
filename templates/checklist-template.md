@@ -8,7 +8,7 @@
 | Field              | Value                                   |
 |--------------------|-----------------------------------------|
 | **Feature**        | [FEATURE_NAME]                          |
-| **Branch**         | `[NNN-FEATURE-NAME]`                   |
+| **Implementation Branch** | Current branch at implementation start |
 | **Date**           | [DATE]                                  |
 | **Gate Decision**  | 🟢 GO · 🟡 GO WITH CAVEATS · 🔴 NO-GO |
 
@@ -101,17 +101,17 @@
 
 ### Repository Setup
 
-- [ ] Feature branch `[NNN-FEATURE-NAME]` created on all affected repos
-- [ ] Latest `develop` (or `main`) pulled into feature branch
-- [ ] No merge conflicts with target branch
-- [ ] CI pipeline runs green on the feature branch (before any changes)
+- [ ] Implementation base/current branch identified for each affected repo
+- [ ] No repo-wide feature branch was created during planning
+- [ ] Working tree is clean in each affected repo
+- [ ] CI or local verification baseline is known before any changes
 
 ### Affected Repos Confirmed
 
-| Repository       | Branch Created | Latest Pull | CI Green | Notes           |
-|------------------|----------------|-------------|----------|-----------------|
-| `[repo-name]`   | [ ]            | [ ]         | [ ]      |                 |
-| `[repo-name]`   | [ ]            | [ ]         | [ ]      |                 |
+| Repository       | Current Branch | Clean Tree | Baseline Known | Notes           |
+|------------------|----------------|------------|----------------|-----------------|
+| `[repo-name]`   | `[branch]`     | [ ]        | [ ]            |                 |
+| `[repo-name]`   | `[branch]`     | [ ]        | [ ]            |                 |
 
 ### Environment
 

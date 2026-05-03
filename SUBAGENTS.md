@@ -13,10 +13,10 @@ The CRISPY framework uses **sub-agents** to keep contexts clean, run independent
 | **Orchestrator** | User | n/a | `crispy` (planning) and `crispy-implement` (execution). Owns the workflow, fans out work. |
 | **Phase agent** | Orchestrator | sync (mostly) | `crispy-clarify`, `crispy-research`, `crispy-intent`, `crispy-structure`, `crispy-plan`, `crispy-yield`. Each owns one CRISPY phase. |
 | **Internal explorer** | Phase agent | parallel | `explore` sub-agents the Research phase fans out to (one per area/repo) when the fan-out threshold is hit. |
-| **Reviewer (spec)** | Orchestrator / `crispy-implement` | sync | `spec-review` agent (a `rubber-duck` invocation focused on correctness vs spec/intent/contracts). Invoked at gates. |
-| **Reviewer (code)** | Orchestrator / `crispy-implement` | sync | `code-review` agent (a `rubber-duck` invocation focused on quality, idioms, security). Runs after `spec-review` at the same gate. |
+| **Reviewer (spec)** | Orchestrator / `crispy-implement` | sync | `spec-review` agent focused on correctness vs spec/intent/contracts. Invoked at gates. |
+| **Reviewer (code)** | Orchestrator / `crispy-implement` | sync | `code-review` agent focused on quality, idioms, security. Runs after `spec-review` at the same gate. |
 | **Implementer pair** | `crispy-implement` | sync per slice | `test-author` (writes failing tests, RED verified) → `implementer` (makes tests pass, GREEN verified) → `spec-review` → `code-review`. |
-| **Utility** | Orchestrator | sync | `crispy-scan`, `crispy-branch`. |
+| **Utility** | Orchestrator | sync | `crispy-scan`; `create-workspace` skill for focused multi-root workspaces. |
 
 **Primary fan-out rule:** The orchestrator (`crispy` or `crispy-implement`) is the primary spawner. Phase agents only fan out internally for clearly bounded work — currently only the researcher, only when the fan-out threshold is met.
 
@@ -43,7 +43,7 @@ These are recommendations, not hard requirements. The orchestrator should respec
 
 Every sub-agent prompt MUST contain these blocks, in this order. Use `templates/subagent-prompt.template.md` as the skeleton.
 
-1. **Role** — one line: which agent type this is (e.g., `crispy-research`, `rubber-duck`, `explore`).
+1. **Role** — one line: which agent type this is (e.g., `crispy-research`, `spec-review`, `explore`).
 2. **Goal** — one paragraph: the outcome the caller needs.
 3. **Inputs** — explicit list of files to read (absolute or feature-folder-relative paths). If the agent must NOT read a file (e.g., research must not read `spec.md`), list it under `MUST NOT READ`.
 4. **Scope guardrails** — what the sub-agent may and may not do (e.g., "read-only", "write only `research.md`", "do not invoke other sub-agents").
@@ -114,7 +114,7 @@ Use **background** spawning when:
 
 Use **sync** spawning when:
 - The next step needs the sub-agent's result.
-- The sub-agent is a reviewer (rubber-duck) — the gate must complete before continuing.
+- The sub-agent is a reviewer (`spec-review` or `code-review`) — the gate must complete before continuing.
 - The sub-agent is small enough that the wait is shorter than coordination overhead.
 
 **Never** background a writer whose artifact a sibling sub-agent is about to read.
@@ -205,9 +205,9 @@ Timeouts are safety nets for infrastructure failures (hung processes, unresponsi
 | Intent review gate | `crispy` | sync | `spec-review` then `code-review` | After `intent.md` written |
 | Plan review gate | `crispy` | sync | `spec-review` then `code-review` | After `plan.md` + `tasks.md` written |
 | Cross-repo scan | `crispy` | sync | `crispy-scan` | During Intent (multi-repo mode) |
-| Auto branch setup | `crispy` | sync | `crispy-branch` (non-interactive) | After Intent confirms repos (autopilot) |
+| Workspace setup | `crispy` | sync (skill) | `create-workspace` | After Intent confirms multiple affected repos |
 | Slice implementation | `crispy-implement` | sync per slice (or fleet) | `git-worktree-isolation` skill (fleet) → `test-author` (RED verified) → `implementer` (GREEN verified) → `spec-review` → `code-review` | Each slice in `outline.md` |
-| Finish branch | `crispy-implement` | sync (skill) | `finish-branch` | After last slice succeeds |
+| Finish implementation branch | `crispy-implement` | sync (skill) | `finish-branch` | After last slice succeeds |
 | Slice fleet | `crispy-implement` | parallel | one TDD quad per independent slice (test-author → implementer → spec-review → code-review) | ≥ 2 slices with no pending deps |
 
 ---
@@ -222,6 +222,7 @@ Timeouts are safety nets for infrastructure failures (hung processes, unresponsi
 - ❌ Reviewer using ad-hoc severity words ("nit", "critical", "🚨"). Use the §6 vocabulary.
 - ❌ Sub-agents writing artifacts the orchestrator didn't authorize.
 - ❌ Leaking the feature name or feature folder path into a blind sub-agent prompt (e.g., `crispy-docs/specs/003-graphql-support/`). Use opaque temp paths (e.g., `<workdir>/research-fragment-<uuid>.md`) and an `area:` description that does not contain the feature name.
+- ❌ Creating one repo-wide feature branch across all affected repos during planning. Branch creation is deferred to implementation, and only per-slice worktree branches are automatic.
 
 ---
 

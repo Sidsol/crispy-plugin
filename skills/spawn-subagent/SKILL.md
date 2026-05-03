@@ -1,6 +1,7 @@
 ---
 name: spawn-subagent
 description: "Spawn a CRISPY sub-agent using the standard prompt skeleton and parse its structured result"
+user-invocable: false
 ---
 
 # Spawn a CRISPY Sub-Agent
@@ -16,7 +17,7 @@ Reusable wrapper around the spawn protocol defined in `SUBAGENTS.md`. Every CRIS
 
 - The current agent could finish the work itself in less time than the spawn + result-parse round-trip.
 - The would-be sub-agent has no clearly bounded scope (vague prompt → vague result).
-- A phase agent wants to spawn a `rubber-duck` reviewer — only the orchestrator gates (§10).
+- A phase agent wants to spawn `spec-review` or `code-review` — only the orchestrator gates (§10).
 - Researcher fan-out below the threshold: if **areas < 3 AND repos < 2**, the researcher does the work itself. Do NOT spawn `explore` sub-agents in that case.
 
 ## Process
@@ -107,14 +108,14 @@ Apply `SUBAGENTS.md` §8 verbatim. Do not silently fall back; do not loop foreve
 3. Continue Clarify. Do not poll mid-question.
 4. When Clarify finishes, read the agent's `crispy-result`. On `status: ok`, move to Intent.
 
-## Worked example: sync `rubber-duck` review gate
+## Worked example: sync two-stage review gate
 
-After `crispy-plan` writes `plan.md` and `tasks.md`, the orchestrator gates with `rubber-duck` before exiting Plan.
+After `crispy-plan` writes `plan.md` and `tasks.md`, the orchestrator gates with `spec-review` and then `code-review` before exiting Plan.
 
-1. Fill skeleton with Role = `rubber-duck`, Goal = "Review plan.md and tasks.md against intent.md and spec.md; surface contract violations, missing requirements, and design choices that will break a downstream phase."
+1. Fill skeleton with Role = `spec-review`, Goal = "Review plan.md and tasks.md against intent.md and spec.md; surface contract violations, missing requirements, and design choices that will break a downstream phase." Then run a separate Role = `code-review` pass focused on quality, idioms, security, and maintainability.
 2. `MUST READ`: `intent.md`, `spec.md`, `plan.md`, `tasks.md`. Scope: read-only, findings only.
 3. Output contract reminder: `findings[]` is **required** for reviewers, severity from §6 vocabulary only — no "nit" / "critical" / emoji (§10).
-4. Spawn **sync**. Block on the result.
+4. Spawn both reviewers **sync**, `spec-review` first and `code-review` second. Block on each result.
 5. On any `severity: high`, halt and surface to user (§6, §8). On `medium`/`low`, append to `plan.md`'s `## Reviewer Findings` and continue.
 
 ## Reminders

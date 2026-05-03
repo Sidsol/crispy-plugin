@@ -1,6 +1,7 @@
 ---
 name: create-plan
 description: "Generate a plan.md with file-level tactical implementation plan"
+user-invocable: false
 ---
 
 # Create Tactical Implementation Plan

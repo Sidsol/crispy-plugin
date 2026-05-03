@@ -1,6 +1,7 @@
 ---
 name: git-worktree-isolation
 description: "Create and clean up isolated git worktrees for parallel slice execution"
+user-invocable: false
 ---
 
 # Git Worktree Isolation

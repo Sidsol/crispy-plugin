@@ -1,6 +1,7 @@
 ---
 name: create-tasks
 description: "Generate a tasks.md with story-organized task breakdown"
+user-invocable: false
 ---
 
 # Create Task Breakdown

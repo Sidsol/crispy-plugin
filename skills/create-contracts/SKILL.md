@@ -1,6 +1,7 @@
 ---
 name: create-contracts
 description: "Generate API/interface contract documents"
+user-invocable: false
 ---
 
 # Create API & Interface Contracts

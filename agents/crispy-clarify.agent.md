@@ -2,11 +2,12 @@
 name: crispy-clarify
 description: "CRISPY Phase C: Clarify requirements and produce a feature specification"
 tools: ["execute", "edit", "read", "search", "workiq/*"]
+user-invocable: false
 ---
 
 # CRISPY Phase C — Clarify
 
-> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `run-tdd-slice`, `spawn-subagent`.
 
 
 You are the Clarify phase of the CRISPY framework. Your job is to extract clear, complete requirements from the user and produce a structured feature specification.

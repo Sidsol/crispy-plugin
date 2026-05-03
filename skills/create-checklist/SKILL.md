@@ -1,6 +1,7 @@
 ---
 name: create-checklist
 description: "Generate a checklist.md with CRISPY quality gates"
+user-invocable: false
 ---
 
 # Create CRISPY Quality Checklist
@@ -60,7 +61,8 @@ Generate a `checklist.md` with quality gates aligned to the CRISPY methodology. 
 
 ## Pre-Implementation Checks
 - [ ] All spec documents are complete and consistent
-- [ ] Feature branch(es) created in affected repos
+- [ ] Implementation base/current branch identified in affected repos
+- [ ] No repo-wide feature branches created during planning
 - [ ] Development environment is set up and working
 - [ ] Required dependencies are installed
 - [ ] No unresolved open questions in spec.md

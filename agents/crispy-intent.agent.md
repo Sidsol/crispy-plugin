@@ -2,11 +2,12 @@
 name: crispy-intent
 description: "CRISPY Phase I: Define architectural intention and design direction"
 tools: ["execute", "edit", "read", "search"]
+user-invocable: false
 ---
 
 # CRISPY Phase I — Intention
 
-> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `run-tdd-slice`, `spawn-subagent`.
 
 
 You are the Intention phase of the CRISPY framework. You bridge the gap between what exists (research) and what's needed (spec) by defining an architectural direction.
@@ -30,7 +31,7 @@ If `inherited_architecture` is NOT provided, behave exactly as before (standalon
 
 ## Process
 
-> **Note:** After this agent returns, the orchestrator runs a `rubber-duck` review gate against `intent.md` (`SUBAGENTS.md` §9). Do not self-review or ask the user to confirm the recommendation here — instead, produce findings with explicit, traceable justification (cite `research.md` sections, `spec.md` requirements) so the reviewer can evaluate them. Gating belongs to the orchestrator (`SUBAGENTS.md` §10).
+> **Note:** After this agent returns, the orchestrator runs the two-stage `spec-review` + `code-review` gate against `intent.md` (`SUBAGENTS.md` §9). Do not self-review or ask the user to confirm the recommendation here — instead, produce findings with explicit, traceable justification (cite `research.md` sections, `spec.md` requirements) so reviewers can evaluate them. Gating belongs to the orchestrator (`SUBAGENTS.md` §10).
 
 ### 1. Current State Summary
 Distill the key findings from `research.md`:
@@ -146,7 +147,7 @@ Write to the feature folder:
 
 ## Output Contract
 
-End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. The orchestrator's `rubber-duck` gate consumes this block.
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. The orchestrator's two-stage review gate consumes this block.
 
 ```yaml
 status: ok | partial | failed
@@ -173,5 +174,5 @@ metadata:
       branch_status: <current-branch>
 ```
 
-The `affected_repos[]` array is REQUIRED — downstream agents (`crispy-branch`, `crispy.agent.md`) consume this directly without re-parsing prose. Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
+The `affected_repos[]` array is REQUIRED — downstream orchestration (`crispy.agent.md`, `create-workspace`, and `crispy-implement`) consumes this directly without re-parsing prose. Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
 

@@ -2,11 +2,13 @@
 
 > **Clarify → Research → Intention → Structure → Plan → Yield**
 
-A GitHub Copilot CLI plugin that implements the CRISPY framework for structured, high-quality AI-assisted software development. Produces spec-kit-style artifacts, **coordinates sub-agents across phases** to keep contexts clean and parallelize work, drives slice-by-slice TDD execution after planning is done, and manages multi-repo branch operations.
+A GitHub Copilot CLI plugin that implements the CRISPY framework for structured, high-quality AI-assisted software development. Produces spec-kit-style artifacts, **coordinates hidden sub-agents across phases** to keep contexts clean and parallelize work, drives slice-by-slice TDD execution after planning is done, and creates focused multi-repo workspaces without planning-time repo-wide branch creation.
 
-> 🆕 **v0.2 — Sub-Agent Orchestration.** The orchestrator now spawns each phase as its own sub-agent, runs research in the background while clarification continues, gates with rubber-duck reviews, and chains into a new `crispy-implement` agent that drives slice-by-slice TDD using sub-agent pairs. See [`SUBAGENTS.md`](./SUBAGENTS.md) for the protocol.
+> 🆕 **v0.2 — Sub-Agent Orchestration.** The orchestrator now spawns each phase as its own sub-agent, runs research in the background while clarification continues, gates with two-stage `spec-review` + `code-review` passes, and chains into a new `crispy-implement` agent that drives slice-by-slice TDD using sub-agent pairs. See [`SUBAGENTS.md`](./SUBAGENTS.md) for the protocol.
 >
 > 🆕 **v0.4 — Greenfield Project Workstream.** A second orchestrator, `@crispy-project`, drives the same 6 CRISPY phases at the **project** level: vision → domain-research → architecture (+ local repo scaffold) → feature-map (DAG of features, with >10-slice auto-split) → roadmap (milestones, no dates) → project-checklist/manifest. Each decomposed feature then runs through the existing `@crispy` workflow with **inherited project context** (architecture.md and domain-research.md become MUST-READ for feature-level Intent and Research). Both workstreams remain available standalone. See [`SUBAGENTS.md §11`](./SUBAGENTS.md).
+>
+> 🆕 **v0.5 — Focused Public Surface.** Only the top-level agents are user-invocable: `@crispy`, `@crispy-project`, and `@crispy-implement`. Phase agents and implementation helpers are hidden via `user-invocable: false` per the Agent Skills/custom agents docs. Repo-wide branch setup is deprecated; multi-repo planning now creates workspaces only, while implementation fleet mode uses per-slice worktree branches.
 
 ## Installation
 
@@ -67,28 +69,17 @@ The orchestrator walks you through all 6 phases:
 5. **Plan** — File-level tactical plan, produces `plan.md` + `tasks.md` + `contracts/`
 6. **Yield** — Quality gate checklist, produces `checklist.md`
 
-### Individual Phase Agents
+### Public Agents
 
-Use any phase independently:
+CRISPY intentionally exposes only three agents to keep the user-facing picker small:
 
-```
-# Feature workstream
-@crispy-clarify "Add OAuth login support"
-@crispy-research "Examine the auth module and user service"
-@crispy-intent "Review spec and research for feature 003"
-@crispy-structure "Define slices for feature 003"
-@crispy-plan "Create tactical plan for feature 003"
-@crispy-yield "Validate feature 003 is ready for implementation"
+| Agent | Use when |
+|---|---|
+| `@crispy` | Plan a feature in an existing codebase. |
+| `@crispy-project` | Plan a greenfield multi-feature project. |
+| `@crispy-implement` | Execute a completed feature plan slice-by-slice after Yield. |
 
-# Project workstream (greenfield)
-@crispy-vision "Capture vision for the new platform"
-@crispy-domain-research "Research the B2B invoicing domain"
-@crispy-architecture "Design architecture for the new platform"
-@crispy-scaffold "Initialize repos per architecture.md"
-@crispy-feature-map "Decompose project into features"
-@crispy-roadmap "Sequence features into milestones"
-@crispy-project-yield "Validate project is ready for feature runs"
-```
+All phase agents (`crispy-clarify`, `crispy-research`, `crispy-intent`, etc.) are internal implementation details. They remain installed so the orchestrators can spawn them, but they are hidden from user selection.
 
 ### Implementation Agent (post-Yield)
 
@@ -101,14 +92,18 @@ After Yield produces an `implementation-manifest.yaml`, run the implementation a
 ```
 
 `crispy-implement` walks the slice graph from `outline.md` and drives a TDD pair per slice:
-**test-author** → **implementer** → **rubber-duck**, then runs build/lint/tests between slices.
+**test-author** → **implementer** → **spec-review** → **code-review**, then runs build/lint/tests between slices.
 
-### Utility Agents
+### Public Skills
 
-```
-@crispy-scan "Which repos are affected by adding GraphQL support?"
-@crispy-branch "Create feature branches for 003-graphql-support"
-```
+Most skills are internal implementation helpers and are hidden from the slash-command menu. The intentionally user-invocable skills are:
+
+| Skill | Use when |
+|---|---|
+| `create-workspace` (`/crispy-workflow:create-workspace` in VS Code) | Recreate or open a focused multi-root workspace for confirmed affected repos. |
+| `generate-metrics-report` (`/crispy-workflow:generate-metrics-report` in VS Code) | Generate static HTML reports from CRISPY metrics JSONL files. |
+
+The deprecated `manage-branches` skill is hidden and disabled; it will not create branches if invoked.
 
 ### Autopilot Mode
 
@@ -120,8 +115,8 @@ Invoke the orchestrator in autopilot to skip interactive gate prompts:
 
 In autopilot:
 - Each phase produces a 3–5 line **checkpoint summary** instead of asking for confirmation.
-- Rubber-duck reviews after Intent and Plan only block on `severity: high` findings (medium/low are appended to the artifact's `## Reviewer Findings` section, then continue).
-- `crispy-branch` runs **non-interactively** with sensible defaults (auto-stash, default `feature/NNN-feature-name`, skip repos with conflicts).
+- Two-stage `spec-review` + `code-review` gates after Intent and Plan only block on `severity: high` findings (medium/low are appended to the artifact's `## Reviewer Findings` section, then continue).
+- Multi-repo planning creates/opens a focused workspace automatically; it does **not** create, switch, pull, stash, or push repo-wide feature branches.
 - `crispy-implement` auto-recommends **`autopilot_fleet`** when the slice graph shows ≥ 2 independent slices.
 
 ### Using with `/fleet`
@@ -196,22 +191,20 @@ When the orchestrator detects cross-repo impact:
 1. **Auto-scans** sibling directories for git repositories
 2. **Analyzes** which repos are affected based on feature + research
 3. **Presents findings** for user confirmation
-4. **Branch management** (if approved):
-   - Checks each repo is on `develop` branch
-   - If not on `develop`, asks for permission
-   - Pulls latest `develop`
-   - Reports conflicts before continuing
-   - Creates feature branches with consistent naming
-
-### Branch Naming
-
-The agent checks `AGENTS.md` in each repo for branch conventions. If none found, it asks you and defaults to `feature/NNN-feature-name`.
+4. **Workspace setup** (if approved):
+   - Creates a `.code-workspace` containing only `crispy-docs` and confirmed affected repos
+   - Opens the workspace automatically in autopilot mode
+   - Does not mutate git state
 
 ### VSCode Workspace
 
-After creating branches, `crispy-branch` automatically generates a `.code-workspace` file in the feature folder containing only the affected repos plus `crispy-docs`. It then opens the workspace in VSCode so you can monitor code changes across all repos in one window.
+After affected repos are confirmed, CRISPY can generate a `.code-workspace` file in the feature folder containing only those repos plus `crispy-docs`. It then opens the workspace in VSCode so you can monitor code changes across all repos in one window.
 
 The workspace file uses relative paths, so it works across machines if repo layouts are consistent.
+
+### Branching
+
+Planning no longer creates one feature branch across every affected repo. Sequential implementation uses the current clean branch. Fleet implementation creates temporary per-slice worktree branches (for example, `crispy/<feature-id>/slice-<N>`) and merges them back into the recorded integration branch after each wave.
 
 ## CRISPY Framework Summary
 
@@ -229,7 +222,7 @@ The workspace file uses relative paths, so it works across machines if repo layo
 - **Blind Research**: The Research phase must NOT know the feature goal — this keeps analysis objective. Fan-out sub-agents inherit the same blindness rule.
 - **Smart Zone**: Keep AI context below 40% — sub-agent delegation is the primary mechanism for this. The orchestrator trusts sub-agent `crispy-result` summaries instead of re-loading artifacts.
 - **Vertical Slices**: Build end-to-end (DB → API → UI) in small, testable pieces. Independent slices run in parallel under `autopilot_fleet`.
-- **No Slop**: Every line of generated code is reviewed by a `rubber-duck` sub-agent against the spec/intent before the slice is accepted.
+- **No Slop**: Every line of generated code is reviewed by `spec-review` and `code-review` sub-agents before the slice is accepted.
 
 ### Sub-Agent Orchestration
 
@@ -239,9 +232,9 @@ The orchestrator (`crispy`) is the primary spawner. Phase agents run as sync or 
 |:---|:---|:---|
 | `crispy-research` (background) | bg | Area identified during Clarify |
 | `explore` × N (researcher fan-out) | parallel | areas ≥ 3 OR repos ≥ 2 |
-| `rubber-duck` after Intent | sync | After `intent.md` written |
-| `rubber-duck` after Plan | sync | After `plan.md` + `tasks.md` written |
-| `crispy-branch` (autopilot mode) | sync | After Intent confirms repos (autopilot only) |
+| `spec-review` then `code-review` after Intent | sync | After `intent.md` written |
+| `spec-review` then `code-review` after Plan | sync | After `plan.md` + `tasks.md` written |
+| `create-workspace` | sync | After Intent confirms multiple affected repos |
 | `test-author (RED) → implementer (GREEN) → spec-review → code-review` | sync per slice | Each slice in `crispy-implement` |
 | TDD pair × N (slice fleet) | parallel | ≥ 2 slices with no pending deps |
 
@@ -255,18 +248,14 @@ crispy-plugin/
 ├── hooks.json                        # Hook config (delegates to hooks/scripts/*.sh + *.ps1)
 ├── hooks/scripts/                    # NEW — cross-platform hook scripts (bash + PowerShell pairs)
 ├── SUBAGENTS.md                      # Sub-agent orchestration protocol (authoritative)
-├── agents/                           # 10 custom agents
-│   ├── crispy.agent.md               # Orchestrator (planning workflow, spawns phase sub-agents)
-│   ├── crispy-clarify.agent.md
-│   ├── crispy-research.agent.md      # Internal fan-out at areas ≥ 3 OR repos ≥ 2
-│   ├── crispy-intent.agent.md
-│   ├── crispy-structure.agent.md     # Emits machine-readable slice dependency graph
-│   ├── crispy-plan.agent.md          # Emits machine-readable task graph
-│   ├── crispy-yield.agent.md         # Writes implementation-manifest.yaml
-│   ├── crispy-implement.agent.md     # Post-Yield TDD slice executor (sequential / fleet / fast_mode)
-│   ├── crispy-scan.agent.md
-│   └── crispy-branch.agent.md        # Has autopilot non-interactive mode
-├── skills/                           # 17 reusable skills
+├── agents/                           # 18 custom agents (3 public, 15 internal)
+│   ├── crispy.agent.md               # Public: feature planning orchestrator
+│   ├── crispy-project.agent.md       # Public: greenfield project orchestrator
+│   ├── crispy-implement.agent.md     # Public: post-Yield TDD slice executor
+│   ├── crispy-*.agent.md             # Internal phase agents (user-invocable: false)
+│   ├── crispy-scan.agent.md          # Internal utility
+│   └── crispy-branch.agent.md        # Deprecated, hidden, branch creation disabled
+├── skills/                           # 25 reusable skills (2 public, 23 internal)
 │   ├── create-spec/
 │   ├── create-research/              # Now supports fan-out mode
 │   ├── create-intent/
@@ -276,7 +265,7 @@ crispy-plugin/
 │   ├── create-checklist/
 │   ├── create-contracts/
 │   ├── detect-repos/
-│   ├── manage-branches/              # Has autopilot non-interactive mode
+│   ├── manage-branches/              # Deprecated, hidden, branch creation disabled
 │   ├── init-crispy-docs/
 │   ├── spawn-subagent/               # NEW — wraps the spawn protocol
 │   ├── create-workspace/             # NEW — generates VSCode multi-root workspace for affected repos
@@ -295,9 +284,8 @@ crispy-plugin/
 
 The plugin works out of the box. Optional configuration:
 
-- **Branch naming**: Add conventions to `AGENTS.md` in your repos
 - **Marketplace**: Update `.github/plugin/marketplace.json` with your org details
-- **Hooks**: Customize `hooks.json` for additional pre-branch checks
+- **Hooks**: Customize `hooks.json` for metrics or lifecycle instrumentation
 
 
 ### Metrics & Reporting
@@ -306,7 +294,11 @@ CRISPY automatically captures per-phase **wall-clock time** and an **estimated p
 
 Generate static HTML reports at any time:
 
-```
+```shell
+# VS Code chat
+/crispy-workflow:generate-metrics-report
+
+# Copilot CLI
 skill generate-metrics-report
 ```
 
@@ -322,8 +314,6 @@ Hook commands live in `hooks.json` and delegate to cross-platform scripts under 
 
 Active hooks:
 
-- `preToolUse: pre-branch-check` — denies `git checkout -b` / `git switch -c` / `git branch -c` when the working tree is dirty (override with `CRISPY_ALLOW_DIRTY=1`).
-- `preToolUse: pre-branch-fetch` — pre-fetches `origin/develop` before a new branch is created (advisory only).
 - `preToolUse: crispy-metrics-start` — records the start timestamp of every CRISPY sub-agent invocation (`task` tool) into `$TEMP/crispy-metrics-pending/`.
 - `postToolUse: crispy-metrics-record` — pairs with the start record, computes elapsed time + token approximations + premium-request estimate, and appends a JSONL row to the owning feature/project's `.metrics.jsonl`. Disable with `CRISPY_METRICS_DISABLED=1`.
 - `userPromptSubmit: inject-crispy-protocol` — telemetry only. Per the docs, `userPromptSubmit` output is ignored, so the protocol reminder lives in `templates/subagent-prompt.template.md` and `SUBAGENTS.md`, not in this hook.

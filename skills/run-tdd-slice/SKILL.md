@@ -1,6 +1,7 @@
 ---
 name: run-tdd-slice
 description: "Execute one vertical slice via the test-author (RED) → implementer (GREEN) → spec-review → code-review loop"
+user-invocable: false
 ---
 
 # Run a TDD Slice
@@ -15,7 +16,7 @@ This skill **assumes the caller has enforced the clean-worktree precondition** b
 
 When `worktree_path` is provided (fleet mode), all file paths in sub-agent prompts are resolved relative to that worktree. The skill itself does not create or remove worktrees — that remains the caller's responsibility.
 
-On any failure (test-author fails, implementer fails, build/lint/tests fail, rubber-duck returns `severity: high`), the **caller** is responsible for rollback (`git reset --hard HEAD`) and for the per-slice checkpoint commit on success. This skill itself does NOT modify git state — it only edits source/test files via its sub-agents and runs verification commands.
+On any failure (test-author fails, implementer fails, build/lint/tests fail, `spec-review` or `code-review` returns `severity: high`), the **caller** is responsible for rollback (`git reset --hard HEAD`) and for the per-slice checkpoint commit on success. This skill itself does NOT modify git state — it only edits source/test files via its sub-agents and runs verification commands.
 
 ## Inputs
 
@@ -24,7 +25,7 @@ On any failure (test-author fails, implementer fails, build/lint/tests fail, rub
 - `contracts` — list of contract paths from `C:\repos\crispy-plugin\crispy-docs\<feature>\contracts\` that this slice must satisfy.
 - `plan_excerpt` — the relevant slice block from `C:\repos\crispy-plugin\crispy-docs\<feature>\plan.md` (file-level technical context, including which test files to write).
 - `fast_mode` — optional boolean flag (default `false`). See "Fast mode opt-out" below.
-- `worktree_path` — optional absolute path to the git worktree for this slice (used in fleet mode). Defaults to the repo root when omitted (sequential mode). When provided, ALL sub-agent prompts (`test-author`, `implementer`, `rubber-duck`) MUST use this path as their working directory for file reads and writes. The `slice_section` file references are relative to this worktree, not the main checkout.
+- `worktree_path` — optional absolute path to the git worktree for this slice (used in fleet mode). Defaults to the repo root when omitted (sequential mode). When provided, ALL sub-agent prompts (`test-author`, `implementer`, `spec-review`, `code-review`) MUST use this path as their working directory for file reads and writes. The `slice_section` file references are relative to this worktree, not the main checkout.
 
 ## Process
 
@@ -185,5 +186,6 @@ Flow:
 2. Run `pytest tests\session\test_refresh_rotation.py`. All three fail with `ModuleNotFoundError: src.session.refresh` — expected. Continue.
 3. Spawn `implementer` sync. It creates `src\session\refresh.py` and wires it into the existing session module. Returns `metadata.changed_files: [src\session\refresh.py, src\session\__init__.py]`.
 4. Run `pytest` (full suite) and `ruff check src tests`. Both pass.
-5. Spawn `rubber-duck` sync with the diff + `spec.md`, `intent.md`, and `token-rotation.md`. Returns one `medium` finding: "Predecessor token invalidation is not idempotent; second rotation attempt with the same token returns 200 instead of 401."
-6. Aggregate: `status: ok`, one `medium` finding, `next_actions: [Append finding to slice 3 section in tasks.md and proceed to slice 4]`. `crispy-implement` continues per §6.
+5. Spawn `spec-review` sync with the diff + `spec.md`, `intent.md`, and `token-rotation.md`. Returns one `medium` finding: "Predecessor token invalidation is not idempotent; second rotation attempt with the same token returns 200 instead of 401."
+6. Spawn `code-review` sync with the same diff for quality/security review. Returns no findings.
+7. Aggregate: `status: ok`, one `medium` finding, `next_actions: [Append finding to slice 3 section in tasks.md and proceed to slice 4]`. `crispy-implement` continues per §6.

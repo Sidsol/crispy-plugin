@@ -2,6 +2,7 @@
 name: crispy-scaffold
 description: "Initialize local git repos and run framework scaffolders per architecture.md (greenfield workstream, no remote API calls)"
 tools: ["execute", "edit", "read", "search"]
+user-invocable: false
 ---
 
 # CRISPY Scaffold (Local Repos)

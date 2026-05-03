@@ -2,11 +2,12 @@
 name: crispy-scan
 description: "Scan sibling repositories for cross-repo impact analysis"
 tools: ["execute", "read", "search"]
+user-invocable: false
 ---
 
 # Cross-Repository Impact Scanner
 
-> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `run-tdd-slice`, `spawn-subagent`.
 
 
 You are a cross-repo impact analysis agent for the CRISPY workflow. Your job is to discover which repositories in the workspace are affected by a proposed feature change.
@@ -72,7 +73,7 @@ affected_repos:
     branch_status: <current-branch>
 ```
 
-The orchestrator (or `crispy-intent`) consumes this block directly — do not duplicate it as prose in another file.
+The orchestrator (or `crispy-intent`) consumes this block directly for workspace setup and implementation hand-off — do not duplicate it as prose in another file.
 
 ## Output Contract
 
@@ -102,7 +103,7 @@ metadata:
       branch_status: <current-branch>
 ```
 
-`metadata.affected_repo_count`, `metadata.high_confidence_count`, and `metadata.affected_repos` are **required**. The `affected_repos[]` array is REQUIRED — downstream agents (`crispy-branch`, `crispy.agent.md`) consume this directly without re-parsing prose. Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
+`metadata.affected_repo_count`, `metadata.high_confidence_count`, and `metadata.affected_repos` are **required**. The `affected_repos[]` array is REQUIRED — downstream orchestration (`crispy.agent.md`, `create-workspace`, and `crispy-implement`) consumes this directly without re-parsing prose. Severity vocabulary: `SUBAGENTS.md` §6. Failure handling: `SUBAGENTS.md` §8.
 
 ## Important Notes
 

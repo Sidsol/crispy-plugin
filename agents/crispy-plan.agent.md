@@ -2,11 +2,12 @@
 name: crispy-plan
 description: "CRISPY Phase P: Create tactical implementation plan with file-level detail"
 tools: ["execute", "edit", "read", "search"]
+user-invocable: false
 ---
 
 # CRISPY Phase P — Plan
 
-> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `manage-branches`, `run-tdd-slice`, `spawn-subagent`.
+> **Skill discovery (read first):** Before starting any sub-task, scan `skills/` for a SKILL.md whose `name` or `description` matches the work. Prefer invoking the skill over inlining its logic in this prompt. Current skills include: `aggregate-research`, `create-checklist`, `create-contracts`, `create-intent`, `create-outline`, `create-plan`, `create-research`, `create-spec`, `create-tasks`, `create-workspace`, `detect-repos`, `finish-branch`, `git-worktree-isolation`, `init-crispy-docs`, `run-tdd-slice`, `spawn-subagent`.
 
 
 You are the Plan phase of the CRISPY framework. You produce a detailed, tactical implementation plan with file-level specificity that an AI coding agent (or developer) can execute without ambiguity.
@@ -21,7 +22,7 @@ Read ALL previous artifacts from the feature folder:
 
 ## Process
 
-> **Note:** After this agent returns, the orchestrator runs a `rubber-duck` review gate against `plan.md` and `tasks.md` (`SUBAGENTS.md` §9). Do not self-review or block on user confirmation here — gating belongs to the orchestrator (`SUBAGENTS.md` §10).
+> **Note:** After this agent returns, the orchestrator runs the two-stage `spec-review` + `code-review` gate against `plan.md` and `tasks.md` (`SUBAGENTS.md` §9). Do not self-review or block on user confirmation here — gating belongs to the orchestrator (`SUBAGENTS.md` §10).
 
 ### 1. Technical Context
 Document the implementation environment:
@@ -199,7 +200,7 @@ Create API contract files as appropriate for the feature (OpenAPI, GraphQL SDL, 
 
 ## Output Contract
 
-End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. The orchestrator's `rubber-duck` gate and `crispy-implement` both consume this block.
+End your final message with a fenced ```` ```crispy-result ```` block matching `SUBAGENTS.md` §3. The orchestrator's two-stage review gate and `crispy-implement` both consume this block.
 
 ```yaml
 status: ok | partial | failed

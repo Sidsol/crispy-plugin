@@ -1,6 +1,7 @@
 ---
 name: create-vision
 description: "Generate a vision.md project specification from user input (greenfield project workstream)"
+user-invocable: false
 ---
 
 # Create Project Vision

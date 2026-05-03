@@ -1,16 +1,17 @@
 ---
 name: finish-branch
-description: "Verify, present options, and clean up after a feature branch is complete"
+description: "Verify, present options, and clean up after an implementation branch is complete"
+user-invocable: false
 ---
 
 # Finish Branch
 
-Runs at the end of `crispy-implement` once all slices in the manifest have completed successfully. Confirms the branch is in a shippable state, presents the operator with concrete next steps, and (when chosen) opens a PR and cleans up the worktree.
+Runs at the end of `crispy-implement` once all slices in the manifest have completed successfully. Confirms the current implementation branch is in a shippable state, presents the operator with concrete next steps, and (when chosen) opens a PR and cleans up the worktree.
 
 ## When to use
 
 - All slices in `implementation-manifest.yaml` returned `status: ok`.
-- Operator (or `chain: true` autopilot) wants to wrap up the feature branch.
+- Operator (or `chain: true` autopilot) wants to wrap up the implementation branch.
 
 ## When NOT to use
 
@@ -20,7 +21,7 @@ Runs at the end of `crispy-implement` once all slices in the manifest have compl
 ## Inputs
 
 - `feature_id` (string) — kebab-case feature identifier.
-- `feature_branch` (string) — the branch implemented.
+- `feature_branch` (string, optional) — the branch implemented. Defaults to the current branch.
 - `worktree_path` (string, optional) — if the work happened in an isolated worktree (from `git-worktree-isolation`), the path to it.
 - `base_branch` (string) — branch to PR into. Defaults to `develop`, falling back to `main`.
 - `mode` (string) — `interactive` (default) or `autopilot`. Autopilot honors `next_action_default`.

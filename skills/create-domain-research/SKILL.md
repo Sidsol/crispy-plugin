@@ -1,6 +1,7 @@
 ---
 name: create-domain-research
 description: "Generate a domain-research.md for greenfield projects: blind problem-domain & external-systems analysis"
+user-invocable: false
 ---
 
 # Create Domain Research (Blind)

@@ -1,6 +1,7 @@
 ---
 name: create-spec
 description: "Generate a spec.md feature specification from user input"
+user-invocable: false
 ---
 
 # Create Feature Specification
