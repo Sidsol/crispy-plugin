@@ -94,6 +94,8 @@ After Yield produces an `implementation-manifest.yaml`, run the implementation a
 `crispy-implement` walks the slice graph from the `implementation-manifest.yaml` and drives a TDD pair per slice:
 **test-author** → **implementer** → **spec-review** → **code-review**, then runs build/lint/tests between slices.
 
+Successful slice checkpoint commits include the manifest feature id as well as the slice number, e.g. `crispy: 003-graphql-support slice 2 — Resolver wiring`. Fleet-mode merge commits use the same feature-qualified convention, e.g. `Merge crispy 003-graphql-support slice 2`.
+
 Each slice carries an `automation: HITL | AFK` classification. In autopilot or fleet mode, HITL (human-in-the-loop) slices pause for user confirmation before proceeding, ensuring safety-critical changes receive explicit human review. AFK (away-from-keyboard) slices proceed automatically.
 
 ### Public Skills
@@ -206,7 +208,7 @@ The workspace file uses relative paths, so it works across machines if repo layo
 
 ### Branching
 
-Planning no longer creates one feature branch across every affected repo. Sequential implementation uses the current clean branch. Fleet implementation creates temporary per-slice worktree branches (for example, `crispy/<feature-id>/slice-<N>`) and merges them back into the recorded integration branch after each wave.
+Planning no longer creates one feature branch across every affected repo. Sequential implementation uses the current clean branch. Fleet implementation creates temporary per-slice worktree branches (for example, `crispy/<feature-id>/slice-<N>`) and merges them back into the recorded integration branch after each wave. Slice checkpoint commits and fleet merge commits include `<feature-id>` so multiple CRISPY features remain distinguishable in Git history.
 
 ## CRISPY Framework Summary
 

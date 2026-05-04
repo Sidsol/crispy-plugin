@@ -115,8 +115,10 @@ After validation passes, write a machine-readable manifest at `crispy-docs/specs
 
 **Process:** before writing the manifest, read the fenced YAML blocks from `outline.md` ("Slice Dependency Graph (Machine-Readable)") and `plan.md` ("Task Graph (Machine-Readable)") and copy them **verbatim** into the manifest under `slice_graph` and `task_graph`. Also read `review-gates.yaml` and copy the `gates` map into `review_gates`. Validate that every slice includes the required fields: `id`, `name`, `depends_on`, `parallelizable`, `automation` (HITL or AFK), `automation_reason`, and `checkpoint_criteria_count`. If any slice is missing `automation` or `automation_reason`, treat this as a **blocker** — newly generated outlines must include these fields; legacy manifests from before this schema extension are permitted but new ones are not. If any of these source blocks is missing or unparsable, do NOT write the manifest — set `ready: false` with a blocker naming the missing/unparsable block.
 
+The top-level `feature` value is the canonical `NNN-feature-name` identifier. `crispy-implement` uses it in slice branch names, checkpoint commit titles, and fleet merge commit titles, so do not omit or replace it with a prose display name.
+
 ```yaml
-feature: <name>
+feature: <feature-id>
 feature_folder: <path>
 artifacts:
   spec: spec.md

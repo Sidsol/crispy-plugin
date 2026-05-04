@@ -25,7 +25,7 @@ If `crispy-yield` has NOT run, or the manifest is missing, stop and tell the use
 
 Read from the feature folder (paths come from the manifest):
 
-- `implementation-manifest.yaml` — authoritative entry point. Carries `ready`, `blockers`, the embedded `slice_graph`, the embedded `task_graph`, and the embedded `review_gates` block. **Read everything from the manifest** — do not re-parse `outline.md` or `plan.md` for the graphs.
+- `implementation-manifest.yaml` — authoritative entry point. Carries `feature`, `feature_folder`, `ready`, `blockers`, the embedded `slice_graph`, the embedded `task_graph`, and the embedded `review_gates` block. **Read everything from the manifest** — do not re-parse `outline.md` or `plan.md` for the graphs.
 - `outline.md` — slice prose for human-readable slice sections passed to `run-tdd-slice` (the `slice_section` input). The dependency graph itself comes from the manifest's embedded `slice_graph`.
 - `plan.md` — file-level task prose for the `plan_excerpt` input passed to `run-tdd-slice`. The task graph itself comes from the manifest's embedded `task_graph`.
 - `tasks.md` — flat checkbox tracker. You will update checkboxes as slices complete (per **Worktree Discipline → `tasks.md` update timing**).
@@ -116,14 +116,16 @@ If removal fails (e.g., locked files), emit a `severity: medium` finding and con
 
 ### Per-slice checkpoint commit
 
+Resolve `feature_id` once from the manifest before the first slice starts. Prefer the top-level `feature` value (the canonical `NNN-feature-name` identifier); if it is absent, use the basename of `feature_folder`. If neither is available, stop with `status: failed` and instruct the user to regenerate the manifest via `@crispy-yield`. Use this exact `feature_id` in every slice branch, checkpoint commit title, and fleet merge commit title.
+
 After a slice completes successfully — i.e. test-author tests written (if not `fast_mode`) AND build/lint/tests pass AND `spec-review` + `code-review` return no `severity: high` findings — the orchestrator commits the slice's changes:
 
 ```powershell
 git -C <repo> add -A
-git -C <repo> commit -m "crispy: slice <N> — <slice-name>" --trailer "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git -C <repo> commit -m "crispy: <feature-id> slice <N> — <slice-name>" --trailer "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ```
 
-This commit becomes the rollback point for the next slice. Commit only the files in the slice's `task_graph[*].files` set plus its `metadata.test_files` — never bulk-add unrelated changes (the clean-worktree precondition guarantees there are none, but stay defensive).
+For example: `crispy: 003-graphql-support slice 2 — Resolver wiring`. This commit becomes the rollback point for the next slice. Commit only the files in the slice's `task_graph[*].files` set plus its `metadata.test_files` — never bulk-add unrelated changes (the clean-worktree precondition guarantees there are none, but stay defensive).
 
 ### Rollback on failure
 
@@ -150,7 +152,7 @@ Each slice does its checkpoint commit on its own slice branch. After the wave dr
 
 ```powershell
 git -C <repo> checkout <integration_branch>
-git -C <repo> merge --no-ff crispy/<feature-id>/slice-<N>
+git -C <repo> merge --no-ff -m "Merge crispy <feature-id> slice <N>" crispy/<feature-id>/slice-<N>
 git -C <repo> worktree remove ..\<repo>-slice-<N>
 ```
 
