@@ -70,9 +70,10 @@ Tasks that can be safely worked on simultaneously:
 
 ## Guidelines
 
-- Task IDs must be unique and sequential (T-001, T-002, ...).
+- Task IDs must be unique and sequential (TASK-001, TASK-002, ...) and aligned with the task graph in `plan.md` for cross-artifact consistency.
 - Every task should be completable in a single focused session (< 2 hours).
 - If a task is too large, split it into sub-tasks.
 - Always include a test task for each functional task.
 - Execution order must respect dependencies — never schedule a task before its dependency.
 - Parallel opportunities should only list tasks with genuinely zero coupling.
+- **Behavior ordering (L3):** Within each phase/slice, group tasks by distinct behaviors. Complete each behavior's tests and implementation before starting the next behavior. Avoid horizontal slicing (e.g., "all tests for slice X, then all implementations").

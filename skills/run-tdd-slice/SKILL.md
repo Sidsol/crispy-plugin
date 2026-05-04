@@ -29,6 +29,17 @@ On any failure (test-author fails, implementer fails, build/lint/tests fail, `sp
 
 ## Process
 
+### Behavior Decomposition (L3)
+
+If the slice's checkpoint criteria or task breakdown indicates **multiple distinct behaviors** (e.g., "implement X and Y", or separate task groups), internally decompose the slice into behavior checkpoints before executing the loop. For each behavior:
+1. Identify the subset of checkpoint criteria and tasks that belong to this behavior.
+2. Run the full TDD loop (test-author → RED → implementer → GREEN → spec-review → code-review) for that behavior only.
+3. Record the behavior as complete before beginning the next behavior.
+
+**Prohibition:** Do NOT batch "write all tests across all behaviors" followed by "implement all behaviors". This is horizontal slicing and violates the RED → GREEN discipline. Each behavior must reach GREEN (passing tests + reviews) before the next behavior's tests are written.
+
+If the slice represents a single cohesive behavior, skip decomposition and proceed with the standard loop.
+
 ### 1. Spawn `test-author` (sync)
 
 Skip this step entirely if `fast_mode = true`.
@@ -36,9 +47,9 @@ Skip this step entirely if `fast_mode = true`.
 Use the prompt skeleton — all six blocks. Key contents:
 
 - **Role**: `test-author`.
-- **Goal**: write failing tests for slice {N} that encode its checkpoint criteria and contracts.
+- **Goal**: write failing tests for slice {N} that encode its checkpoint criteria and contracts. **If the slice contains multiple distinct behaviors (per "Behavior Decomposition"), write tests for the CURRENT behavior only** — do not write tests for later behaviors in the same slice.
 - **Inputs / MUST READ**: `slice_section`, every path in `contracts`, the `plan_excerpt`. **MUST NOT READ**: existing implementation files for the slice (so tests describe behavior, not current code).
-- **Scope guardrails — May**: create new test files at the paths declared in `plan.md` (resolved relative to `worktree_path` if provided, else repo root). **Must NOT**: modify production code, modify other slices' tests, spawn other sub-agents.
+- **Scope guardrails — May**: create new test files at the paths declared in `plan.md` (resolved relative to `worktree_path` if provided, else repo root). **Must NOT**: modify production code, modify other slices' tests, write tests for future behaviors or slices, spawn other sub-agents.
 - **Output contract**: standard `crispy-result` (§3) with `artifact_path` set to the test directory and `metadata.test_files: [...]` listing every file written.
 - **Failure handling**: per template defaults.
 
@@ -71,9 +82,9 @@ Run the project's existing test command (do not invent one). Confirm the new tes
 Skeleton fields:
 
 - **Role**: `implementer`.
-- **Goal**: write the minimum production code to make the failing tests for slice {N} pass.
+- **Goal**: write the minimum production code to make the failing tests for slice {N} pass. **If decomposed into multiple behaviors, implement ONLY the currently failing behavior** — do not pre-implement later behaviors in the same slice.
 - **Inputs / MUST READ**: the failing test files (paths from step 1), `slice_section`, `contracts`, `plan_excerpt`.
-- **Scope guardrails — May**: create/modify production files within the slice's declared file scope from `plan.md` (resolved relative to `worktree_path` if provided, else repo root). **Must NOT**: modify any test file (that breaks the TDD invariant), modify files outside the slice scope, spawn other sub-agents.
+- **Scope guardrails — May**: create/modify production files within the slice's declared file scope from `plan.md` (resolved relative to `worktree_path` if provided, else repo root). **Must NOT**: modify any test file (that breaks the TDD invariant), modify files outside the slice scope, implement future behaviors before their tests exist, spawn other sub-agents.
 - **Output contract**: `crispy-result` with `metadata.changed_files: [...]`.
 - **Failure handling**: per template defaults.
 

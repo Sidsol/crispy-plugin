@@ -224,6 +224,7 @@ Planning no longer creates one feature branch across every affected repo. Sequen
 - **Vertical Slices**: Build end-to-end (DB → API → UI) in small, testable pieces. Independent slices run in parallel under `autopilot_fleet`.
 - **No Slop**: Every line of generated code is reviewed by `spec-review` and `code-review` sub-agents before the slice is accepted.
 - **Source-Learning Traceability**: Workflow improvements applied from public learnings (e.g., L1-L10 IDs in feature 001-pocock-learning-improvement) are explicitly documented and referenced in change context. Transcripts or captions unavailable due to platform limitations; requirements derived from public video framing and companion materials only.
+- **No Horizontal Slicing (L3)**: Within each slice, implementation proceeds behavior-by-behavior through RED (failing tests) → GREEN (passing implementation) → review before the next behavior begins. Fleet mode parallelizes independent slices but forbids batching "all tests first, all implementations later" inside any slice worker. This discipline prevents premature abstractions, keeps test failures tightly scoped, and ensures reviewers can validate behavioral correctness incrementally.
 
 ### Sub-Agent Orchestration
 
