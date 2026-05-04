@@ -79,6 +79,22 @@ The aggregation step is mandatory in fan-out mode: do not concatenate fragments 
 
 ## Guidelines
 
+### Research Vocabulary Sidecar (L2 source-learning traceability)
+
+Research discovers only **codebase-observed vocabulary with evidence**. Do NOT write to `CONTEXT.md` (Clarify owns that artifact). Instead, write discovered terms to `CONTEXT.research-vocabulary.md` in the feature folder.
+
+Each vocabulary entry must include:
+- **Evidence**: code snippet, pattern, or observable fact
+- **Source**: file path and line number
+
+After writing the vocabulary sidecar, reference it in `research.md`'s preamble:
+
+```markdown
+# Codebase Research: [Area Name]
+
+> **Vocabulary sidecar**: See `CONTEXT.research-vocabulary.md` for codebase-discovered technical terms.
+```
+
 - Reference specific file paths and line numbers wherever possible.
 - Document what **is**, not what **should be**.
 - Note any inconsistencies between different parts of the codebase.

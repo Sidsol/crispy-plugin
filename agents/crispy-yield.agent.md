@@ -23,6 +23,10 @@ Read ALL artifacts from the feature folder:
 - `tasks.md`
 - `contracts/` (if present)
 
+### Feature Context (L2 source-learning traceability)
+
+**Check for `CONTEXT.md`** in the feature folder. If present, read it as the canonical ubiquitous language for this feature. Honor its terms, resolved decisions, and relationships when validating consistency. If absent, skip safely (legacy behavior for older feature folders).
+
 ## Validation Checks
 
 ### 1. Completeness

@@ -77,6 +77,18 @@ Generate a `checklist.md` with quality gates aligned to the CRISPY methodology. 
 
 ## Guidelines
 
+### Source-Learning Traceability (L1)
+
+Include checks for:
+- Explicit learning ID references (L1-L10) or research findings in workflow changes
+- Transcript/caption limitation preservation
+- Public-agent boundary documentation
+
+### Artifact and Contract Preferences
+
+- **Prefer `contracts/` directory** over `contracts.md` for API/interface contracts (legacy `contracts.md` references are not blockers until regenerated)
+- Check for `CONTEXT.md` presence (ubiquitous language artifact); if absent, skip safely (legacy feature folders)
+
 - Each checkbox must be verifiable — no subjective assessments.
 - The checklist should be used as a living document during implementation.
 - Mark items as they are verified; add notes for any exceptions.

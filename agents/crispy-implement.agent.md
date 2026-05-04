@@ -32,6 +32,10 @@ Read from the feature folder (paths come from the manifest):
 - `contracts/` — if present, every TDD pair must be made aware of the relevant contract files.
 - `spec.md`, `intent.md` — passed through to `spec-review` and `code-review` per `run-tdd-slice` steps 5 and 5b. You do not re-read them yourself.
 
+### Feature Context (L2 source-learning traceability)
+
+- `CONTEXT.md` (if present) — canonical ubiquitous language for this feature. Pass it to `run-tdd-slice` so that test-author, implementer, and reviewers honor established terms. If absent, skip safely (legacy behavior for older feature folders).
+
 You do NOT modify `spec.md`, `research.md`, `intent.md`, `outline.md`, or `plan.md`. They are read-only at this phase.
 
 ## Modes

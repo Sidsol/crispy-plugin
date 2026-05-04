@@ -20,6 +20,10 @@ Read ALL previous artifacts from the feature folder:
 3. `intent.md` — architecture decision
 4. `outline.md` — vertical slices
 
+### Feature Context (L2 source-learning traceability)
+
+5. **Check for `CONTEXT.md`** in the feature folder. If present, read it as the canonical ubiquitous language for this feature. Honor its terms, resolved decisions, and relationships. If absent, skip safely (legacy behavior for older feature folders).
+
 ## Process
 
 > **Note:** After this agent returns, the orchestrator runs the two-stage `spec-review` + `code-review` gate against `plan.md` and `tasks.md` (`SUBAGENTS.md` §9). Do not self-review or block on user confirmation here — gating belongs to the orchestrator (`SUBAGENTS.md` §10).

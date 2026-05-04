@@ -25,8 +25,17 @@
 - [ ] Research document captures objective current state
 - [ ] No confirmation bias detected (research doesn't "pre-solve" the feature)
 - [ ] Technical debt was honestly documented
+- [ ] Research vocabulary sidecar (`CONTEXT.research-vocabulary.md`) contains only codebase-discovered terms with evidence
 
 > **If failed:** Redo research.md with a fresh AI context that has no knowledge of spec.md.
+
+### 📚 Source-Learning Traceability (L1)
+
+- [ ] Workflow changes reference explicit learning IDs (L1-L10) or research findings
+- [ ] Transcript/caption limitations are preserved in documentation (no direct transcript coverage claims)
+- [ ] Public-agent boundary documented (only `@crispy`, `@crispy-project`, `@crispy-implement` user-invocable)
+
+> **If failed:** Add source-learning IDs or research citations to changed prompts/docs.
 
 ### 🎯 Intent is Sound
 
@@ -82,7 +91,8 @@
 - [ ] `outline.md` — Vertical slices defined
 - [ ] `plan.md` — Line-level implementation plan
 - [ ] `tasks.md` — Ordered task list with verification steps
-- [ ] `contracts.md` — API/interface contracts (if applicable)
+- [ ] `contracts/` directory — API/interface contracts (if applicable; **prefer `contracts/` over `contracts.md`**)
+- [ ] `CONTEXT.md` — Ubiquitous language artifact (if present; legacy feature folders may not have it)
 - [ ] `checklist.md` — This file, all gates passing
 
 ### Cross-Reference Consistency

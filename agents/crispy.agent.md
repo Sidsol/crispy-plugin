@@ -137,6 +137,14 @@ When Clarify returns `status: ok`:
 
 If Clarify never emits a `research_area` signal, do not spawn research yet — Phase 2 will spawn it sync.
 
+### Context Handoff (L2 source-learning traceability)
+
+After Clarify completes `spec.md`, check if it also produced `CONTEXT.md` in the feature folder. If present, this becomes the **ubiquitous language** artifact that downstream phases must honor.
+
+**Blindness preservation:** Do NOT pass `CONTEXT.md` content, spec-derived context, feature goals, or desired-state terms into blind Research or `explore` prompts. Research discovers its own codebase vocabulary independently and writes only to `CONTEXT.research-vocabulary.md` (see Phase 2).
+
+**Downstream reading:** After Research completes and before Intent begins, check for `CONTEXT.md` again. If present, add it to the `MUST READ` list for Intent, Structure, Plan, Yield, and Implement agents. If absent, skip safely (legacy behavior for older feature folders).
+
 ---
 
 ## Phase 2: Research

@@ -18,6 +18,10 @@ You are the Intention phase of the CRISPY framework. You bridge the gap between 
 2. Read `research.md` from the feature folder — this is the current state.
 3. The feature folder path is provided by the user (e.g., `crispy-docs/specs/001-user-auth/`).
 
+### Feature Context (L2 source-learning traceability)
+
+4. **Check for `CONTEXT.md`** in the feature folder. If present, read it as the canonical ubiquitous language for this feature. Honor its terms, resolved decisions, and relationships. If absent, skip safely (legacy behavior for older feature folders).
+
 ### Inherited Project Architecture (Greenfield Project Workstream)
 
 If the orchestrator passes `inherited_architecture: <path>` (typically `<project-folder>/architecture.md`) in the inline context, this feature lives under a `@crispy-project` greenfield project. In that case:
