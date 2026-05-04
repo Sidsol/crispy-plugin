@@ -223,6 +223,7 @@ Planning no longer creates one feature branch across every affected repo. Sequen
 - **Smart Zone**: Keep AI context below 40% — sub-agent delegation is the primary mechanism for this. The orchestrator trusts sub-agent `crispy-result` summaries instead of re-loading artifacts.
 - **Vertical Slices**: Build end-to-end (DB → API → UI) in small, testable pieces. Independent slices run in parallel under `autopilot_fleet`.
 - **No Slop**: Every line of generated code is reviewed by `spec-review` and `code-review` sub-agents before the slice is accepted.
+- **Source-Learning Traceability**: Workflow improvements applied from public learnings (e.g., L1-L10 IDs in feature 001-pocock-learning-improvement) are explicitly documented and referenced in change context. Transcripts or captions unavailable due to platform limitations; requirements derived from public video framing and companion materials only.
 
 ### Sub-Agent Orchestration
 

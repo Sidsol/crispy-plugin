@@ -95,6 +95,43 @@ If a fan-out sub-agent returns `status: failed` or `partial`, follow `SUBAGENTS.
 
 Write the research findings to the feature folder:
 
+### Research Vocabulary Sidecar (L2 source-learning traceability)
+
+**CRITICAL:** Research discovers only codebase-observed technical vocabulary with evidence. You must NOT write to `CONTEXT.md` (that is Clarify's artifact). Instead, write codebase-discovered terms to `CONTEXT.research-vocabulary.md` in the same feature folder.
+
+**Format for `CONTEXT.research-vocabulary.md`:**
+
+```markdown
+# Research Vocabulary
+
+> **Source**: Codebase analysis (blind)  
+> **Created**: [YYYY-MM-DD]
+
+This sidecar documents technical vocabulary discovered during blind research. These terms are candidates for merging into `CONTEXT.md` after Clarify reviews and approves them.
+
+| Term | Definition | Evidence | Source File(s) |
+|------|------------|----------|----------------|
+| [Term] | [Brief definition] | [Code snippet or pattern observed] | [file:line] |
+
+```
+
+Each term must have:
+- **Evidence**: code snippet, pattern, or observable fact
+- **Source**: file path and line number where the term was discovered
+
+Do NOT include:
+- Spec-derived terms
+- Desired-state vocabulary
+- Feature goals or requirements
+
+After writing `CONTEXT.research-vocabulary.md`, reference it in `research.md`'s preamble:
+
+```markdown
+# Codebase Research: [Area/Component Name]
+
+> **Vocabulary sidecar**: See `CONTEXT.research-vocabulary.md` for codebase-discovered technical terms.
+```
+
 ```markdown
 # Codebase Research: [Area/Component Name]
 

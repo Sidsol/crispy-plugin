@@ -222,6 +222,7 @@ Timeouts are safety nets for infrastructure failures (hung processes, unresponsi
 - ❌ Reviewer using ad-hoc severity words ("nit", "critical", "🚨"). Use the §6 vocabulary.
 - ❌ Sub-agents writing artifacts the orchestrator didn't authorize.
 - ❌ Leaking the feature name or feature folder path into a blind sub-agent prompt (e.g., `crispy-docs/specs/003-graphql-support/`). Use opaque temp paths (e.g., `<workdir>/research-fragment-<uuid>.md`) and an `area:` description that does not contain the feature name.
+- ❌ **Spec-derived context leakage into blind Research** (L2 source-learning traceability): Passing `CONTEXT.md` content, feature goals, desired-state terms, or spec-derived vocabulary into blind Research or `explore` prompts. This is a **high-severity blindness violation**. Research discovers only codebase-observed vocabulary with evidence and writes only to `CONTEXT.research-vocabulary.md`.
 - ❌ Creating one repo-wide feature branch across all affected repos during planning. Branch creation is deferred to implementation, and only per-slice worktree branches are automatic.
 
 ---

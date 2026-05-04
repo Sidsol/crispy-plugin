@@ -19,6 +19,10 @@ Read from the feature folder:
 2. `research.md` — current codebase state
 3. `intent.md` — chosen architecture and gap analysis
 
+### Feature Context (L2 source-learning traceability)
+
+4. **Check for `CONTEXT.md`** in the feature folder. If present, read it as the canonical ubiquitous language for this feature. Honor its terms, resolved decisions, and relationships. If absent, skip safely (legacy behavior for older feature folders).
+
 ## What Is a Vertical Slice?
 
 A vertical slice cuts through ALL layers of the stack for a narrow piece of functionality. It is NOT a horizontal layer (e.g., "build all the database tables" then "build all the APIs").
