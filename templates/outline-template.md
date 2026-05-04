@@ -21,13 +21,13 @@
 <!-- Order slices so each builds on the previous one. -->
 <!-- Map stories from spec.md to slices. -->
 
-| Slice   | Name                    | Stories Covered | Estimated Effort | Parallelizable | Depends On |
-|---------|-------------------------|-----------------|------------------|----------------|------------|
-| Slice 1 | [e.g., Data Foundation] | —               | [S/M/L]          | false          | —          |
-| Slice 2 | [e.g., Core CRUD]      | S-001           | [S/M/L]          | false          | Slice 1    |
-| Slice 3 | [e.g., Business Logic]  | S-001, S-002    | [S/M/L]          | true           | Slice 2    |
-| Slice 4 | [e.g., UI Integration]  | S-002           | [S/M/L]          | true           | Slice 2    |
-| Slice 5 | [e.g., Polish & Edge]  | S-003           | [S/M/L]          | false          | Slice 3, 4 |
+| Slice   | Name                    | Stories Covered | Estimated Effort | Parallelizable | Depends On | Automation | Automation Reason |
+|---------|-------------------------|-----------------|------------------|----------------|------------|------------|-------------------|
+| Slice 1 | [e.g., Data Foundation] | —               | [S/M/L]          | false          | —          | HITL       | [why human review required] |
+| Slice 2 | [e.g., Core CRUD]      | S-001           | [S/M/L]          | false          | Slice 1    | AFK        | [why fully automated] |
+| Slice 3 | [e.g., Business Logic]  | S-001, S-002    | [S/M/L]          | true           | Slice 2    | HITL       | [why human review required] |
+| Slice 4 | [e.g., UI Integration]  | S-002           | [S/M/L]          | true           | Slice 2    | AFK        | [why fully automated] |
+| Slice 5 | [e.g., Polish & Edge]  | S-003           | [S/M/L]          | false          | Slice 3, 4 | HITL       | [why human review required] |
 
 ---
 
@@ -38,6 +38,10 @@
 **Scope:** [What this slice delivers — keep it narrow and testable]
 
 **Stories addressed:** [None — infrastructure / S-001 / etc.]
+
+**Automation:** HITL | AFK
+
+**Automation Reason:** [One sentence justifying classification: why this slice requires human review (HITL) or can run fully automated (AFK)]
 
 #### Deliverables
 
@@ -200,11 +204,15 @@ slices:
     name: [Data Foundation]
     depends_on: []
     parallelizable: false
+    automation: HITL
+    automation_reason: "[One-sentence justification]"
     checkpoint_criteria_count: 3
   - id: 2
     name: [Core CRUD]
     depends_on: [1]
     parallelizable: false
+    automation: AFK
+    automation_reason: "[One-sentence justification]"
     checkpoint_criteria_count: 3
 ```
 

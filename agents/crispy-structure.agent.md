@@ -53,6 +53,8 @@ For each phase:
 - **Checkpoint criteria**: How to verify this phase is complete
 - **Estimated complexity**: S/M/L
 - **Files likely touched**: Key files from research.md
+- **Automation classification**: `HITL` (human-in-the-loop) or `AFK` (away-from-keyboard / fully automated)
+- **Automation reason**: One-sentence justification for the classification
 
 ### 3. Context Management Notes
 For each phase, include guidance on AI context management:
@@ -72,14 +74,16 @@ Write to the feature folder:
 
 ## Vertical Slices Overview
 
-| Phase | Name | Scope | Complexity | Depends On | Parallelizable |
-|-------|------|-------|------------|------------|----------------|
-| 1     | ...  | ...   | S/M/L      | []         | false          |
-| 2     | ...  | ...   | S/M/L      | [1]        | false          |
-| 3     | ...  | ...   | S/M/L      | [1]        | true           |
-| ...   | ...  | ...   | ...        | ...        | ...            |
+| Phase | Name | Scope | Complexity | Depends On | Parallelizable | Automation | Automation Reason |
+|-------|------|-------|------------|------------|----------------|------------|-------------------|
+| 1     | ...  | ...   | S/M/L      | []         | false          | HITL/AFK   | ...               |
+| 2     | ...  | ...   | S/M/L      | [1]        | false          | HITL/AFK   | ...               |
+| 3     | ...  | ...   | S/M/L      | [1]        | true           | HITL/AFK   | ...               |
+| ...   | ...  | ...   | ...        | ...        | ...            | ...        | ...               |
 
 `Depends On` is a list of phase numbers (empty list `[]` if none). `Parallelizable` is a **static hint** indicating this slice is a candidate for parallel execution — `true` when the slice has at least one sibling whose dependencies don't create a serial bottleneck. The actual runtime decision (which slices run in the same wave) is computed dynamically by `crispy-implement` based on dependency satisfaction AND file-set conflict checks. A slice with `Parallelizable: true` may still run sequentially at runtime if its files overlap with a sibling.
+
+`Automation` must be exactly `HITL` (human-in-the-loop) or `AFK` (away-from-keyboard / fully automated). `Automation Reason` provides a one-sentence justification for the classification. Use `HITL` when the slice touches safety-critical orchestration, manifest validation, review-gate behavior, blindness semantics, dangerous commands, or requires human judgment on user experience or policy decisions. Use `AFK` only when the slice is purely additive, has comprehensive test coverage, and introduces no new safety boundaries.
 
 ## Slice Dependency Graph (Machine-Readable)
 
@@ -91,11 +95,15 @@ slices:
     name: <name>
     depends_on: []
     parallelizable: false
+    automation: HITL
+    automation_reason: "<one-sentence justification>"
     checkpoint_criteria_count: <n>
   - id: 2
     name: <name>
     depends_on: [1]
     parallelizable: false
+    automation: AFK
+    automation_reason: "<one-sentence justification>"
     checkpoint_criteria_count: <n>
 ```
 
@@ -107,6 +115,10 @@ Every phase in the prose breakdown below must appear here exactly once.
 
 ### Scope
 [Which user stories / requirements this covers]
+
+### Automation
+- **automation**: HITL | AFK
+- **automation_reason**: [One-sentence justification: why this slice requires human review (HITL) or can run fully automated (AFK)]
 
 ### Deliverable
 [What exists when this phase is complete]

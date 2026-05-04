@@ -30,17 +30,20 @@ Brief explanation of how the feature was decomposed and why this slicing approac
 
 ## Slices Overview
 
-| Slice | Name | Stories | Estimated Effort | Depends On | Parallelizable |
-|---|---|---|---|---|---|
-| 1 | {name} | S-001 | M | — | false |
-| 2 | {name} | S-002 | S | 1 | false |
-| 3 | {name} | S-003 | M | 1 | true |
+| Slice | Name | Stories | Estimated Effort | Depends On | Parallelizable | Automation | Automation Reason |
+|---|---|---|---|---|---|---|---|
+| 1 | {name} | S-001 | M | — | false | HITL | {justification} |
+| 2 | {name} | S-002 | S | 1 | false | AFK | {justification} |
+| 3 | {name} | S-003 | M | 1 | true | HITL | {justification} |
 
 ## Slices
 
 ### Slice 1: {Name}
 **Scope:** {What this slice delivers end-to-end}
 **User Stories:** US-1, US-3
+**Automation:** HITL | AFK
+**Automation Reason:** {One-sentence justification for the classification}
+
 **Deliverables:**
 - {Concrete deliverable with file/component reference}
 - {Concrete deliverable with file/component reference}
@@ -72,6 +75,8 @@ slices:
     name: <name>
     depends_on: []
     parallelizable: false
+    automation: HITL
+    automation_reason: "<one-sentence justification>"
     checkpoint_criteria_count: <n>
 ```
 
@@ -94,3 +99,4 @@ How the complete feature will be verified after all slices are implemented.
 - Context management notes help AI assistants maintain coherence across sessions.
 - The dependency graph should make parallel work opportunities visible.
 - Checkpoint criteria must be concrete and verifiable, not vague ("it works").
+- **Automation classification**: Every slice must include `automation: HITL | AFK` and `automation_reason`. Use `HITL` (human-in-the-loop) when the slice touches safety-critical orchestration, manifest validation, review-gate behavior, blindness semantics, dangerous commands, or requires human judgment on user experience or policy decisions. Use `AFK` (away-from-keyboard / fully automated) only when the slice is purely additive, has comprehensive test coverage, and introduces no new safety boundaries.

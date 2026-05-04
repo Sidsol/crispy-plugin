@@ -10,10 +10,12 @@ Generate a `plan.md` with a file-level implementation plan that maps directly fr
 
 ## Process
 
-1. Read all prior documents: `spec.md`, `research.md`, `intent.md`, `outline.md`.
+1. Read all prior documents: `spec.md`, `research.md`, `intent.md`, `outline.md` (including per-slice `automation: HITL | AFK` classifications).
 2. For each slice, identify the exact files to create, modify, or delete.
 3. Define implementation phases with specific file paths and change descriptions.
 4. Write `plan.md` in the feature's spec directory.
+
+> **Note:** `outline.md` includes `automation` and `automation_reason` per slice. Plan MAY reference these for implementation context (e.g., noting that a HITL slice requires extra human review care) but MUST NOT author, modify, or override the automation classification. The automation metadata flows Structure → Yield → Implement; Plan is read-only for automation fields.
 
 ## Template Structure
 

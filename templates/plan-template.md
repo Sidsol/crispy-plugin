@@ -92,11 +92,13 @@
 <!-- Each phase maps to a vertical slice from outline.md. -->
 <!-- Every file operation is explicit: CREATE, MODIFY, or DELETE. -->
 <!-- L3: Organize steps by distinct behaviors within each phase. Complete each behavior's tests and implementation before starting the next behavior. -->
+<!-- Note: `automation: HITL | AFK` values are copied from `outline.md` for implementation context only. `outline.md` remains the source of truth until Yield serializes these fields into `implementation-manifest.yaml`. Plan may reference automation for context but MUST NOT author or override it. -->
 
 ### Phase 1: [Slice Name — e.g., "Data Foundation"]
 
-**Outline reference:** Slice 1
-**Stories:** [Infrastructure / S-001 / etc.]
+**Outline reference:** Slice 1  
+**Automation:** [HITL | AFK] — [copy automation_reason from outline.md for context only; do NOT author or override]  
+**Stories:** [Infrastructure / S-001 / etc.]  
 **Behavior ordering:** [If this phase contains multiple distinct behaviors, list them here to guide behavior-by-behavior TDD execution]
 
 #### Step 1.1: [Action — e.g., "Create database migration"]

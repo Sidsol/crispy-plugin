@@ -55,8 +55,10 @@
 - [ ] Slices are ordered by dependency (no circular dependencies)
 - [ ] Every story from spec.md maps to at least one slice
 - [ ] Checkpoint criteria defined for each slice
+- [ ] Every slice includes `automation: HITL | AFK` and `automation_reason` in both prose and YAML graph
+- [ ] Automation classifications agree between `outline.md` and `implementation-manifest.yaml`
 
-> **If failed:** Restructure outline.md. Each slice should be: DB → Service → API → UI (as applicable).
+> **If failed:** Restructure outline.md. Each slice should be: DB → Service → API → UI (as applicable). Missing automation fields block manifest generation.
 
 ### 📋 Plan is Tactical
 

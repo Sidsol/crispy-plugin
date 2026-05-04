@@ -18,11 +18,13 @@ Read ALL previous artifacts from the feature folder:
 1. `spec.md` — requirements
 2. `research.md` — codebase analysis
 3. `intent.md` — architecture decision
-4. `outline.md` — vertical slices
+4. `outline.md` — vertical slices with automation classifications
 
 ### Feature Context (L2 source-learning traceability)
 
 5. **Check for `CONTEXT.md`** in the feature folder. If present, read it as the canonical ubiquitous language for this feature. Honor its terms, resolved decisions, and relationships. If absent, skip safely (legacy behavior for older feature folders).
+
+> **Note:** `outline.md` includes `automation: HITL | AFK` and `automation_reason` per slice. Plan may reference these for context (e.g., noting that a HITL slice requires extra review care) but MUST NOT author, modify, or override the automation classification. The automation metadata flows from Structure → Yield → Implement; Plan is read-only for automation fields.
 
 ## Process
 

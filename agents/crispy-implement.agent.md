@@ -51,25 +51,37 @@ The two flags are **independent**: any combination is valid (`execution_mode: fl
 
 In **interactive mode**, when ≥ 2 independent slices exist, ask the user before switching from `sequential` to `fleet`. In **autopilot**, switch automatically and announce it in the checkpoint summary. `fast_mode` is opt-in only — never enable it implicitly.
 
+### HITL/AFK Pause Behavior
+
+Every slice in the manifest's `slice_graph.slices[]` includes an `automation` field with value `HITL` (human-in-the-loop) or `AFK` (away-from-keyboard / fully automated) and an `automation_reason` justification. Before starting any slice marked `automation: HITL` in **autopilot or fleet mode**, the orchestrator MUST pause and emit a `crispy-result` checkpoint with `status: paused` that includes:
+
+- The slice number, name, and `automation_reason` from the manifest
+- A summary of what the slice will change (files from the task graph)
+- A prompt: "This slice requires human review before proceeding. Reply 'continue' to proceed, 'skip' to skip this slice, or 'abort' to stop implementation."
+
+After the user confirms, proceed with the slice. In **interactive mode**, HITL slices proceed without additional pause (the user is already present). `automation: AFK` slices proceed immediately in all modes. Missing or invalid `automation` values (not `HITL` or `AFK`) are treated as blockers — stop and emit `status: failed` with a finding instructing the user to regenerate the manifest via `@crispy-yield`.
+
+Legacy manifests without `automation` fields are not silently reinterpreted as `AFK` — they are rejected as schema-incomplete. This ensures newly generated features enforce the safety gate explicitly.
+
 ### No Horizontal Slicing (L3)
 
 Both `sequential` and `fleet` modes MUST enforce behavior-by-behavior execution within each slice worker: one behavior through RED → GREEN → review before the next behavior begins. Fleet mode permits independent slices to run in parallel but FORBIDS batching "all tests first, all implementations later" inside any slice worker. This constraint is passed through to `run-tdd-slice`, which decomposes multi-behavior slices into behavior checkpoints and constrains `test-author`, `implementer`, and reviewers to current-behavior boundaries only.
 
 ## Backward Compatibility
 
-If `implementation-manifest.yaml` is **missing**, OR `slice_graph` is missing from the manifest, OR `task_graph` is missing from the manifest, OR `review_gates` is missing from the manifest — **REFUSE to proceed**. Do NOT attempt to migrate older feature folders by re-deriving fields from `outline.md` / `plan.md` / `intent.md` yourself. Instead, emit a `crispy-result` with:
+If `implementation-manifest.yaml` is **missing**, OR `slice_graph` is missing from the manifest, OR `task_graph` is missing from the manifest, OR `review_gates` is missing from the manifest, OR any slice in `slice_graph.slices[]` is missing `automation` or `automation_reason` — **REFUSE to proceed**. Do NOT attempt to migrate older feature folders by re-deriving fields from `outline.md` / `plan.md` / `intent.md` yourself. Instead, emit a `crispy-result` with:
 
 ```yaml
 status: failed
 agent: crispy-implement
 summary: |
-  Manifest is missing required structured fields (slice_graph, task_graph, or review_gates),
-  or the manifest itself is absent. Cannot proceed.
+  Manifest is missing required structured fields (slice_graph, task_graph, review_gates,
+  or slice automation metadata), or the manifest itself is absent. Cannot proceed.
 next_actions:
-  - Run @crispy-yield against this feature folder to regenerate the manifest, slice graph, task graph, and review_gates block.
+  - Run @crispy-yield against this feature folder to regenerate the manifest with complete schema including automation fields.
 ```
 
-Older feature folders predating these fields MUST be re-yielded; this agent does not perform automatic migration.
+Older feature folders predating these fields MUST be re-yielded; this agent does not perform automatic migration. Legacy manifests without `automation` fields are not silently reinterpreted as `AFK` — they are rejected as schema-incomplete to ensure newly generated features enforce the HITL safety gate explicitly.
 
 ## Worktree Discipline
 

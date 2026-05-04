@@ -133,7 +133,9 @@ The researcher fans out to multiple `explore` sub-agents when **areas ≥ 3 OR r
 
 ### 5.2 Implement-time slice fan-out
 
-`crispy-implement` reads the slice dependency graph from `outline.md`. When **≥ 2 slices have no pending dependencies**, it recommends `autopilot_fleet`. In non-autopilot mode it asks the user; in autopilot it proceeds with the fleet.
+`crispy-implement` reads the slice dependency graph from the `implementation-manifest.yaml`. When **≥ 2 slices have no pending dependencies**, it recommends `autopilot_fleet`. In non-autopilot mode it asks the user; in autopilot it proceeds with the fleet.
+
+Each slice in the manifest includes `automation: HITL | AFK` and `automation_reason`. Before starting any `automation: HITL` slice in autopilot or fleet mode, `crispy-implement` pauses and prompts the user for confirmation. `automation: AFK` slices proceed immediately. This ensures safety-critical slices (those touching orchestration, manifest semantics, review gates, blindness rules, or dangerous commands) receive explicit human review before proceeding.
 
 ---
 
