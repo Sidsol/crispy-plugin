@@ -11,11 +11,36 @@ Generate a `plan.md` with a file-level implementation plan that maps directly fr
 ## Process
 
 1. Read all prior documents: `spec.md`, `research.md`, `intent.md`, `outline.md` (including per-slice `automation: HITL | AFK` classifications).
-2. For each slice, identify the exact files to create, modify, or delete.
-3. Define implementation phases with specific file paths and change descriptions.
-4. Write `plan.md` in the feature's spec directory.
+2. Check `intent.md` for "Module Surface Analysis" section with isolated-test candidates. If present, include test file tasks for those modules. If absent, proceed without isolated tests.
+3. For each slice, identify the exact files to create, modify, or delete.
+4. Define implementation phases with specific file paths and change descriptions.
+5. Write `plan.md` in the feature's spec directory.
 
 > **Note:** `outline.md` includes `automation` and `automation_reason` per slice. Plan MAY reference these for implementation context (e.g., noting that a HITL slice requires extra human review care) but MUST NOT author, modify, or override the automation classification. The automation metadata flows Structure → Yield → Implement; Plan is read-only for automation fields.
+
+## Standalone Mode (Missing Input Fallback)
+
+When invoked outside the full CRISPY orchestration:
+
+**Required inputs**: Feature goal, target repository, technology stack.
+
+**Missing `spec.md`**: Prompt user for requirements. Document inline in `plan.md` preamble with note: *"spec.md unavailable; requirements gathered directly."*
+
+**Missing `research.md`**: Conduct lightweight codebase scan yourself. Document findings inline in `plan.md` with note: *"research.md unavailable; conducted inline scan."*
+
+**Missing `intent.md`**: Propose architecture inline in `plan.md` without full option analysis. Note: *"intent.md unavailable; architecture approach documented inline."*
+
+**Missing `outline.md`**: Create a single-phase plan with all tasks in sequence. Note: *"outline.md unavailable; single-phase plan generated."*
+
+**Partial status**: If planning reveals critical unknowns (e.g., unclear integration points, missing API contracts), return:
+```yaml
+status: partial
+reason: "Plan incomplete due to missing <specific artifacts or knowledge>."
+next_action: "Run full CRISPY phases (Research/Intent/Outline) or provide <missing info>."
+partial_output: "<path to incomplete plan.md>"
+```
+
+**Normal orchestrated flow**: When all prior artifacts are present, proceed as documented with no fallback behavior.
 
 ## Template Structure
 

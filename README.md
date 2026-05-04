@@ -318,9 +318,17 @@ Hook commands live in `hooks.json` and delegate to cross-platform scripts under 
 
 Active hooks:
 
+- `preToolUse: dangerous-command-guard` — **Safety guardrail** that blocks destructive operations (`git push`, `git reset --hard`, `git clean`, `git stash drop`, `rm -rf`, and detectable equivalents) before tool execution. If you genuinely need a blocked operation, exit CRISPY CLI and run the command directly in a standard shell. To disable (NOT RECOMMENDED): remove the guard hook from `hooks.json` or modify `hooks/scripts/dangerous-command-guard.{ps1,sh}`.
 - `preToolUse: crispy-metrics-start` — records the start timestamp of every CRISPY sub-agent invocation (`task` tool) into `$TEMP/crispy-metrics-pending/`.
 - `postToolUse: crispy-metrics-record` — pairs with the start record, computes elapsed time + token approximations + premium-request estimate, and appends a JSONL row to the owning feature/project's `.metrics.jsonl`. Disable with `CRISPY_METRICS_DISABLED=1`.
 - `userPromptSubmit: inject-crispy-protocol` — telemetry only. Per the docs, `userPromptSubmit` output is ignored, so the protocol reminder lives in `templates/subagent-prompt.template.md` and `SUBAGENTS.md`, not in this hook.
+
+**Dangerous-command guard details:**
+- Blocked operations: `git push`, `git reset --hard`, `git clean -f/-fd/-fdx`, `git stash drop/clear`, `git branch -D/-d`, `git remote remove`, `git tag -d`, `rm -rf`, `Remove-Item -Recurse -Force`, `rd /s /q`, `del /f /s /q`, and pattern-equivalent forms.
+- **Override path**: None built-in. If a blocked operation is genuinely required, document the reason, exit CRISPY CLI, and run it in a standard shell.
+- **Why no override?** Allowing inline bypasses (e.g., `--force` flags) defeats the safety purpose. The friction of exiting the CLI ensures deliberate action.
+
+See `hooks/scripts/dangerous-command-guard.fixtures.md` for tested examples of blocked and allowed commands.
 
 ### Two-stage review
 

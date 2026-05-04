@@ -94,6 +94,8 @@
 <!-- L3: Organize steps by distinct behaviors within each phase. Complete each behavior's tests and implementation before starting the next behavior. -->
 <!-- Note: `automation: HITL | AFK` values are copied from `outline.md` for implementation context only. `outline.md` remains the source of truth until Yield serializes these fields into `implementation-manifest.yaml`. Plan may reference automation for context but MUST NOT author or override it. -->
 
+**Isolated-test candidates** (L9): If `intent.md` identified isolated-test candidates in its Module Surface Analysis, include test file creation tasks for those modules in the appropriate phase. If no candidates were identified, proceed without isolated tests. Do not invent candidates that Intent did not mark.
+
 ### Phase 1: [Slice Name — e.g., "Data Foundation"]
 
 **Outline reference:** Slice 1  
