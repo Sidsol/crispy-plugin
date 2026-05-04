@@ -15,6 +15,26 @@ Generate a `tasks.md` with an actionable task list organized by user stories fro
 3. Organize tasks under their corresponding user stories.
 4. Write `tasks.md` in the feature's spec directory.
 
+## Standalone Mode (Missing Input Fallback)
+
+When invoked outside the full CRISPY orchestration:
+
+**Required inputs**: List of implementation steps or changes.
+
+**Missing `spec.md`**: Tasks will reference inline goal descriptions instead of story IDs. Note: *"spec.md unavailable; tasks reference inline goals."*
+
+**Missing `plan.md`**: Prompt user for implementation approach. Break it into tasks. Note: *"plan.md unavailable; tasks generated from user-provided approach."*
+
+**Partial status**: If task breakdown requires detailed file-level context, return:
+```yaml
+status: partial
+reason: "Task breakdown incomplete due to missing plan.md file-level detail."
+next_action: "Run crispy-plan or provide detailed implementation steps."
+partial_output: "<path to incomplete tasks.md>"
+```
+
+**Normal orchestrated flow**: When `spec.md` and `plan.md` are present, proceed as documented with full story/task mapping.
+
 ## Template Structure
 
 ```markdown

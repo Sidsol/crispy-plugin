@@ -56,6 +56,20 @@ Compare current vs desired state:
 - What can be reused as-is?
 - What existing code conflicts with the desired state?
 
+### 3a. Module Surface Analysis (L9 source-learning: testability and isolation)
+
+For each new or significantly modified module/class/function:
+
+1. **Count module surface**: How many required inputs does this module accept? How many optional inputs? The larger the surface, the harder to test and compose.
+2. **Identify callers**: Which files/modules will call this? If ≥ 2 distinct callers exist, the module is genuinely shared and should be stable.
+3. **Apply deletion test**: "If I delete this module, does the same complexity reappear in ≥ 2 callers?" If yes, the abstraction is justified. If no, consider inlining.
+4. **Mark isolated-test candidates**: Only when:
+   - The module interface is stable (not actively changing during implementation).
+   - The module can be tested without network/filesystem/interactive dependencies.
+   - The module has ≥ 2 distinct callers OR embeds nontrivial logic (≥ 3 branches or complex transformations).
+
+Record these observations in a `## Module Surface Analysis` section in `intent.md`. Plan will consume isolated-test candidates if present.
+
 ### 4. Architecture Options
 Propose **3 distinct approaches** with different tradeoffs:
 

@@ -11,8 +11,9 @@ Generate a `research.md` by analyzing the codebase **without knowledge of the fe
 ## Process
 
 1. Identify the target repository or repositories to analyze.
-2. Conduct a thorough read-only scan of the codebase.
-3. Document findings in `research.md` in the feature's spec directory.
+2. **Zoom-out synthesis** (L6): Scan architecture-level signals (config, directory structure, entry points) to build a system-level mental map before detailed analysis.
+3. Conduct a thorough read-only scan of the codebase.
+4. Document findings in `research.md` in the feature's spec directory, starting with the zoom-out overview.
 
 ## Critical Rule
 
@@ -101,3 +102,23 @@ After writing the vocabulary sidecar, reference it in `research.md`'s preamble:
 - Include observations about test coverage and testing patterns.
 - Flag any hardcoded values, magic numbers, or configuration that lives in code.
 - Keep the tone objective and factual — avoid recommendations at this stage.
+
+## Standalone Mode (Missing Input Fallback)
+
+When invoked outside the full CRISPY orchestration:
+
+**Required inputs**: Target area/component to research (e.g., "authentication system"), repository path(s).
+
+**Missing orchestrator context**: Proceed with blind research as documented. Do NOT attempt to read `spec.md` or infer feature goals.
+
+**Partial status**: If the area is too large or ambiguous, return:
+```yaml
+status: partial
+reason: "Research area spans ≥5 modules or unclear boundaries; recommend narrowing scope."
+next_action: "Specify 1-2 concrete modules/files to focus on, or approve fan-out mode for large area."
+partial_output: "<path to incomplete research.md or fragments>"
+```
+
+**Fan-out threshold**: When areas ≥ 3 OR repos ≥ 2, automatically fan out per `SUBAGENTS.md` §5.1 and aggregate results. No user confirmation needed in standalone mode.
+
+**Normal orchestrated flow**: When called by `crispy-research` agent, follow its fan-out decisions and blindness preservation rules without deviation.

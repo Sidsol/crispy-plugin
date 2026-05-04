@@ -140,6 +140,8 @@
 - [ ] Required services/databases accessible
 - [ ] API keys / secrets available (not hardcoded)
 - [ ] Test data or seed scripts ready
+- [ ] Dangerous-command guard is active in `hooks.json` (verify `preToolUse` includes `dangerous-command-guard.{ps1,sh}`)
+- [ ] Dangerous-command guard blocks tested dangerous commands (run sample commands from `hooks/scripts/dangerous-command-guard.fixtures.md` to verify blocking behavior)
 
 ---
 

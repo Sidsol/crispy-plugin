@@ -20,6 +20,31 @@
 
 ---
 
+## 0. Zoom-Out System Overview
+
+<!-- L6 source-learning: architecture context before detailed analysis. -->
+<!-- Complete this section BEFORE detailed file scanning to establish mental map. -->
+
+### 0.1 Architecture Shape
+- [ ] **Deployment model**: [Monolith / Microservices / Serverless / Hybrid]
+- [ ] **Layer separation**: [MVC / Clean Architecture / Hexagonal / Domain-Driven / Flat]
+- [ ] **Primary language(s)**: [Language(s) and version(s)]
+- [ ] **Framework(s)**: [Framework(s) and version(s)]
+
+### 0.2 Component Boundaries
+<!-- List top-level modules/services and their approximate responsibilities BEFORE detailed analysis. -->
+- **[Component A]**: [High-level responsibility]
+- **[Component B]**: [High-level responsibility]
+
+### 0.3 Risk-First Anchor Points
+<!-- Identify these architectural anchors to guide detailed analysis: -->
+- **Authentication/Authorization**: [Where/how implemented, or absent]
+- **Data access patterns**: [ORM / Raw SQL / NoSQL / File-based / None observed]
+- **External integrations**: [APIs called, message queues, third-party services]
+- **Async boundaries**: [Event loops / Workers / Promises / Callbacks / Threads]
+
+---
+
 ## 1. Current Architecture
 
 ### 1.1 File Structure

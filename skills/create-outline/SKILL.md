@@ -15,6 +15,30 @@ Generate an `outline.md` that breaks the feature into vertical implementation sl
 3. Define checkpoint criteria for each slice.
 4. Write `outline.md` in the feature's spec directory.
 
+## Standalone Mode (Missing Input Fallback)
+
+When invoked outside the full CRISPY orchestration:
+
+**Required inputs**: Feature goal, rough architecture approach.
+
+**Missing `spec.md`**: Prompt user for P1 requirements. Document inline in `outline.md` preamble with note: *"spec.md unavailable; requirements gathered directly."*
+
+**Missing `research.md`**: Skip current-state context. Slices will be less informed but still executable. Note: *"research.md unavailable; slicing based on requirements only."*
+
+**Missing `intent.md`**: Prompt user for architecture approach. Document inline in `outline.md` with note: *"intent.md unavailable; approach documented inline."*
+
+**Partial status**: If slicing logic requires deeper architecture analysis, return:
+```yaml
+status: partial
+reason: "Slicing incomplete due to missing architecture context from intent.md."
+next_action: "Run crispy-intent or provide architecture approach description."
+partial_output: "<path to incomplete outline.md>"
+```
+
+**Automation classification**: When missing intent/research, default to `automation: HITL` with reason: *"Conservative HITL classification due to missing prior analysis."*
+
+**Normal orchestrated flow**: When `spec.md`, `research.md`, and `intent.md` are present, proceed as documented with full automation analysis.
+
 ## Template Structure
 
 The outline MUST include:

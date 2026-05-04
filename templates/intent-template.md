@@ -75,6 +75,28 @@
 
 ---
 
+## 3a. Module Surface Analysis
+
+<!-- L9 source-learning: testability and isolation planning. -->
+<!-- For each new or significantly modified module, analyze: -->
+
+| Module | Required Inputs | Optional Inputs | Callers (count) | Deletion Test | Isolated-Test Candidate? |
+|--------|-----------------|-----------------|-----------------|---------------|--------------------------|
+| [module-name] | [count] | [count] | [≥2 or <2] | [Pass: complexity reappears / Fail: inline] | [Yes: stable interface, no external deps, ≥2 callers OR ≥3 branches / No: unstable or external deps] |
+
+**Deletion test**: "If I delete this module, does the same complexity reappear in ≥ 2 callers?"
+- **Pass**: Abstraction justified, keep module.
+- **Fail**: Consider inlining into single caller.
+
+**Isolated-test candidate criteria**:
+- Interface is stable (not actively changing during implementation).
+- Testable without network/filesystem/interactive dependencies.
+- ≥ 2 distinct callers OR embeds nontrivial logic (≥ 3 branches or complex transformations).
+
+Plan will consume isolated-test candidates when present; absence is not a blocker.
+
+---
+
 ## 4. Architecture Options
 
 <!-- Present at least 2-3 options. Be honest about trade-offs. -->

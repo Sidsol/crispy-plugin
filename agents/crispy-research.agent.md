@@ -56,6 +56,17 @@ If a fan-out sub-agent returns `status: failed` or `partial`, follow `SUBAGENTS.
 
 ## Research Process
 
+### 0. Zoom-Out Synthesis (L6 source-learning: architecture context before details)
+
+Before detailed scanning, perform a zoom-out synthesis pass:
+
+1. **System-level overview**: Scan build/config files, root directory structure, and main entry points to understand the overall architecture shape (monolith vs. microservices, layer separation, deployment model).
+2. **Technology stack identification**: Identify primary languages, frameworks, package managers, and build tools without diving into implementation.
+3. **Component relationship mapping**: Identify top-level modules/services and their approximate boundaries before analyzing individual files.
+4. **Risk-first surface scan**: Look for authentication, authorization, data access, external integrations, and async boundaries as architectural anchors.
+
+This synthesis step produces a "mental map" that guides detailed file-by-file analysis and prevents missing cross-cutting concerns. Write this overview at the top of `research.md` before detailed sections.
+
 ### 1. File Structure Mapping
 - Use `glob` and `view` to map the directory tree of the target area.
 - Identify entry points, modules, configuration files, and test directories.

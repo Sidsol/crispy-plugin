@@ -85,6 +85,8 @@ Rules:
 - Mark tasks that can run in parallel.
 - P1 stories get tasks first; P2/P3 follow.
 
+**Isolated-test candidates** (L9): If `intent.md` includes a "Module Surface Analysis" section with isolated-test candidates, include a test file creation task for each candidate in the appropriate phase. If no candidates are marked, proceed without isolated tests — they are optional, not mandatory. Do not invent isolated-test candidates that Intent did not identify.
+
 ### 4. API Contracts (if applicable)
 If the feature involves APIs (REST, GraphQL, events, etc.):
 - Create a `contracts/` directory in the feature folder.

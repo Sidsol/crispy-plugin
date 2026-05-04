@@ -99,3 +99,23 @@ If the API publishes or subscribes to events:
 - If the API uses pagination, document the pagination contract explicitly.
 - If the API uses WebSockets or event-driven patterns, document the message contracts.
 - Contracts are agreements — both provider and consumer teams should review them.
+
+## Standalone Mode (Missing Input Fallback)
+
+When invoked outside the full CRISPY orchestration:
+
+**Required inputs**: API/interface description (endpoints, data models, behaviors).
+
+**Missing `spec.md`**: Prompt user for API requirements. Generate contracts from provided description. Note: *"Contracts generated from direct API description; spec.md unavailable."*
+
+**Missing `intent.md`**: Proceed without architecture context. Contracts will document interface without justification. Note: *"Contracts generated without architectural context from intent.md."*
+
+**Partial status**: If contract requirements are incomplete (e.g., unclear data models, missing error cases), return:
+```yaml
+status: partial
+reason: "Contracts incomplete due to missing: <specific details>."
+next_action: "Provide complete API specification (endpoints, models, errors) or run full CRISPY phases."
+partial_output: "<path to contracts/ directory with partial contracts>"
+```
+
+**Normal orchestrated flow**: When `spec.md` and `intent.md` are present, generate contracts as documented with full integration context.

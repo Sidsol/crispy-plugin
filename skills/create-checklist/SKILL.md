@@ -101,3 +101,15 @@ Include checks for:
 - Mark items as they are verified; add notes for any exceptions.
 - If a gate cannot be passed, document why and get explicit approval to proceed.
 - This checklist is the final quality assurance step before coding begins.
+
+## Standalone Mode (Missing Input Fallback)
+
+When invoked outside the full CRISPY orchestration:
+
+**Required inputs**: Feature folder path.
+
+**Missing prior artifacts** (spec.md, research.md, etc.): Generate a minimal checklist with generic quality gates. Note: *"Minimal checklist generated; full CRISPY artifacts unavailable."*
+
+**Partial mode**: If some artifacts exist (e.g., spec.md but no research.md), generate checklist sections only for available artifacts. Omit sections for missing phases. Note: *"Partial checklist based on available artifacts: <list>."*
+
+**Normal orchestrated flow**: When all CRISPY artifacts are present, generate full checklist as documented with phase-specific gates.

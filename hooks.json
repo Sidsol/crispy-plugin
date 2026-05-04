@@ -12,6 +12,12 @@
     "preToolUse": [
       {
         "type": "command",
+        "bash": "bash hooks/scripts/dangerous-command-guard.sh \"$COPILOT_TOOL_NAME\" \"$COPILOT_TOOL_ARGS\"",
+        "powershell": "pwsh -NoProfile -File hooks/scripts/dangerous-command-guard.ps1 -Command \"$env:COPILOT_TOOL_NAME\" -Args \"$env:COPILOT_TOOL_ARGS\"",
+        "timeoutSec": 5
+      },
+      {
+        "type": "command",
         "bash": "bash hooks/scripts/crispy-metrics-start.sh",
         "powershell": "pwsh -NoProfile -File hooks/scripts/crispy-metrics-start.ps1",
         "timeoutSec": 5

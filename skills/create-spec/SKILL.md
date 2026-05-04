@@ -27,6 +27,28 @@ Generate a `spec.md` file in the designated feature folder using the CRISPY spec
    
 3. **Create spec.md** in the feature's spec directory (e.g., `crispy-docs/specs/NNN-feature-name/spec.md`).
 
+## Standalone Mode (Missing Input Fallback)
+
+When invoked directly by a user (not orchestrated):
+
+**Required inputs**: Feature name, feature folder path.
+
+**Missing CONTEXT.md**: Proceed without canonical terms. Create `CONTEXT.md` from scratch during clarification.
+
+**Interactive mode**: Ask one question at a time as documented. This is the normal behavior.
+
+**Batch mode** (if user provides full requirements upfront): Parse provided text, extract stories/requirements, create `spec.md` and `CONTEXT.md`. Return success with note: *"Batch mode: spec generated from provided requirements without interactive clarification."*
+
+**Partial status**: If requirements are too vague or contradictory, return:
+```yaml
+status: partial
+reason: "Requirements incomplete or contradictory: <specific issues>."
+next_action: "Clarify <specific ambiguities> before generating spec."
+partial_output: "<path to CONTEXT.md with documented ambiguities>"
+```
+
+**Normal orchestrated flow**: When called by `crispy-clarify` or `crispy` agent, follow interactive decision-tree flow as documented.
+
 ## Template Structure
 
 ```markdown
