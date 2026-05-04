@@ -137,11 +137,18 @@ When Clarify returns `status: ok`:
 
 If Clarify never emits a `research_area` signal, do not spawn research yet — Phase 2 will spawn it sync.
 
-### Context Handoff (L2 source-learning traceability)
+### Context Handoff and Research Vocabulary Merge (L2, L3)
 
 After Clarify completes `spec.md`, check if it also produced `CONTEXT.md` in the feature folder. If present, this becomes the **ubiquitous language** artifact that downstream phases must honor.
 
 **Blindness preservation:** Do NOT pass `CONTEXT.md` content, spec-derived context, feature goals, or desired-state terms into blind Research or `explore` prompts. Research discovers its own codebase vocabulary independently and writes only to `CONTEXT.research-vocabulary.md` (see Phase 2).
+
+**Research vocabulary merge semantics**: After Research completes, the orchestrator handles merging approved blind Research vocabulary into the feature's context:
+
+1. **Research writes only to `CONTEXT.research-vocabulary.md`** — a separate sidecar file containing codebase-discovered terms with evidence (file paths, line numbers, examples). Research MUST NOT read or write to `CONTEXT.md`.
+2. **Human approval gate** (interactive mode): present the Research vocabulary to the user and ask which terms should be promoted to the main `CONTEXT.md` as canonical domain terms.
+3. **Autopilot merge**: automatically promote Research vocabulary terms that have clear codebase evidence and do not conflict with existing `CONTEXT.md` terms. Log the merge decision.
+4. **Keep Research vocabulary separate**: The `CONTEXT.research-vocabulary.md` file persists even after merge so the source of terms remains traceable.
 
 **Downstream reading:** After Research completes and before Intent begins, check for `CONTEXT.md` again. If present, add it to the `MUST READ` list for Intent, Structure, Plan, Yield, and Implement agents. If absent, skip safely (legacy behavior for older feature folders).
 

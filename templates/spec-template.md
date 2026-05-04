@@ -1,8 +1,9 @@
 # Feature Spec: [FEATURE_NAME]
 
-<!-- CRISPY Phase: CLARIFY → produces spec.md -->
+<!-- CRISPY Phase: CLARIFY → produces spec.md and optional CONTEXT.md -->
 <!-- This document captures the full requirements for the feature. -->
 <!-- All user stories should be prioritized and independently testable. -->
+<!-- See CONTEXT.md (if present) for canonical terms and ubiquitous language. -->
 
 | Field       | Value                          |
 |-------------|--------------------------------|

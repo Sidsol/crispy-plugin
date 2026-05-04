@@ -62,7 +62,7 @@ Then per-feature: `@crispy crispy-docs/projects/NNN/features/MMM/` runs the stan
 ```
 
 The orchestrator walks you through all 6 phases:
-1. **Clarify** — Asks 5-10 clarifying questions, produces `spec.md`
+1. **Clarify** — Interactive decision-tree questioning (one question at a time with recommended answers), produces `spec.md` and optional `CONTEXT.md` for ubiquitous language
 2. **Research** — Blind codebase analysis (no feature goal revealed), produces `research.md`
 3. **Intention** — Architecture analysis with 3 options, produces `intent.md`
 4. **Structure** — Vertical slices and checkpoints, produces `outline.md`
