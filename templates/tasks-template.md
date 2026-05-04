@@ -17,14 +17,16 @@
 ## Task Format
 
 ```
-- [ ] [T-NNN] [P?] [S-NNN] Description of the task
+- [ ] [TASK-NNN] [P?] [S-NNN] Description of the task
        └─ Files: path/to/file.ext (CREATE/MODIFY)
        └─ Verify: How to confirm this task is done
 ```
 
-- **T-NNN**: Task ID (sequential within phase)
+- **TASK-NNN**: Task ID (sequential, aligned with `plan.md` task graph; legacy `T-NNN` format deprecated in favor of `TASK-NNN` for cross-artifact consistency)
 - **P?**: Priority from spec (P1/P2/P3)
 - **S-NNN**: Story reference from spec.md (or "Infra" for infrastructure)
+
+**Behavior ordering (L3):** Organize tasks by distinct behaviors within each phase. Complete each behavior's tests and implementation before starting the next behavior. Avoid horizontal slicing (e.g., "all tests first, all implementations later").
 
 ---
 

@@ -59,6 +59,11 @@ Generate a `checklist.md` with quality gates aligned to the CRISPY methodology. 
 - [ ] Parallel opportunities are identified
 - [ ] Test tasks exist for each functional task
 
+### 🧪 No Horizontal Slicing (L3)
+- [ ] Multi-behavior slices identify distinct behaviors
+- [ ] Tasks are ordered by behavior (tests + implementation together), not by layer
+- [ ] Reviewers flag tests for future behaviors or premature abstractions as boundary violations
+
 ## Pre-Implementation Checks
 - [ ] All spec documents are complete and consistent
 - [ ] Implementation base/current branch identified in affected repos

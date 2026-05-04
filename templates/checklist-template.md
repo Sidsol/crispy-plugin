@@ -77,6 +77,15 @@
 
 > **If failed:** Split oversized slices in outline.md. Add context boundary markers.
 
+### 🧪 No Horizontal Slicing (L3)
+
+- [ ] Multi-behavior slices identify distinct behaviors before implementation begins
+- [ ] Task/plan ordering groups work by behavior (tests + implementation together), not by layer (all tests first, all implementations later)
+- [ ] TDD pairs (test-author → implementer) are scoped to current behavior only, with no tests or implementations for future behaviors
+- [ ] Reviewers flag tests for future behaviors, premature abstractions, or broad unrelated edits as implementation-boundary violations
+
+> **If failed:** Reorganize tasks by behavior. Ensure each behavior completes its RED → GREEN → review cycle before the next behavior begins.
+
 ---
 
 ## Part 2: Artifact Completeness

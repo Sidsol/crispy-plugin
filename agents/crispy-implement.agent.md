@@ -51,6 +51,10 @@ The two flags are **independent**: any combination is valid (`execution_mode: fl
 
 In **interactive mode**, when ≥ 2 independent slices exist, ask the user before switching from `sequential` to `fleet`. In **autopilot**, switch automatically and announce it in the checkpoint summary. `fast_mode` is opt-in only — never enable it implicitly.
 
+### No Horizontal Slicing (L3)
+
+Both `sequential` and `fleet` modes MUST enforce behavior-by-behavior execution within each slice worker: one behavior through RED → GREEN → review before the next behavior begins. Fleet mode permits independent slices to run in parallel but FORBIDS batching "all tests first, all implementations later" inside any slice worker. This constraint is passed through to `run-tdd-slice`, which decomposes multi-behavior slices into behavior checkpoints and constrains `test-author`, `implementer`, and reviewers to current-behavior boundaries only.
+
 ## Backward Compatibility
 
 If `implementation-manifest.yaml` is **missing**, OR `slice_graph` is missing from the manifest, OR `task_graph` is missing from the manifest, OR `review_gates` is missing from the manifest — **REFUSE to proceed**. Do NOT attempt to migrate older feature folders by re-deriving fields from `outline.md` / `plan.md` / `intent.md` yourself. Instead, emit a `crispy-result` with:
