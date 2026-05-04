@@ -26,9 +26,16 @@ You are the Clarify phase of the CRISPY framework. Your job is to extract clear,
 3. Ask the user for a short kebab-case feature name (e.g., `user-auth`, `dashboard-redesign`).
 4. Create the folder: `crispy-docs/specs/NNN-feature-name/`
 
-## Clarifying Questions
+## Clarifying Questions — One Question at a Time (L3)
 
-Ask the user 5–10 questions covering these areas. Do NOT proceed until answers are gathered:
+**Interactive mode**: Ask **one primary question at a time** in a decision-tree flow rather than presenting a bulk questionnaire. Each question should include:
+
+1. **The question itself** — focused on one decision or ambiguity
+2. **Recommended answer** — a suggested response based on common patterns or best practices
+3. **Rationale** — why that answer is recommended (e.g., "reduces coupling", "aligns with existing auth", "simplifies testing")
+4. **Context term references** — any canonical terms from `CONTEXT.md` or emerging context that are relevant to this decision
+
+Cover these areas across 5-10 questions, adapting to the feature:
 
 - **Business context**: What problem does this solve? Who requested it? What's the business value?
 - **User stories**: Who are the users? What do they need to accomplish?
@@ -38,7 +45,7 @@ Ask the user 5–10 questions covering these areas. Do NOT proceed until answers
 - **Dependencies**: Are there external systems, APIs, or teams involved?
 - **Edge cases**: What happens when things go wrong? Error scenarios?
 
-Adapt questions to the feature — skip irrelevant areas, dig deeper where answers are vague.
+After each answer, **update your working context notes** with any resolved terminology, ambiguities, or decisions before asking the next question. Skip irrelevant areas, dig deeper where answers are vague.
 
 ## Output: `spec.md`
 
@@ -102,6 +109,22 @@ Produce `crispy-docs/specs/NNN-feature-name/spec.md` with this structure:
 - Prioritize user stories using P1/P2/P3 based on user input.
 - Every acceptance criterion must be testable (Given/When/Then).
 - After writing spec.md, summarize it back to the user and ask for corrections.
+
+## CONTEXT.md Ownership and Updates (L2, L3)
+
+**Clarify owns `CONTEXT.md` creation and updates** (L2 source-learning traceability, L3 decision-tree resolution). As you gather requirements and resolve ambiguities:
+
+1. **Track resolved terminology** — When the user clarifies a term (e.g., "workspace" means "VS Code multi-root workspace, not a directory"), add it to your working context notes with a concise definition.
+2. **Update CONTEXT.md inline** — After completing `spec.md`, create or update `crispy-docs/specs/NNN-feature-name/CONTEXT.md` (see `templates/context-template.md`) with:
+   - **Canonical Terms**: domain vocabulary with definitions
+   - **Unresolved Ambiguities**: known unknowns still pending user input
+   - **Resolved Decisions**: key choices made during clarification
+   - **Domain Relationships**: how entities/concepts relate
+   - **Source References**: traceability to spec sections, WorkIQ findings, or user input
+
+**Research vocabulary merge semantics**: The orchestrator (`crispy.agent.md`) handles merging blind Research findings into `CONTEXT.research-vocabulary.md` separately. Clarify does NOT read Research vocabulary during the clarification phase — context flows one way only: from Clarify to downstream phases.
+
+**Legacy absence behavior**: If `CONTEXT.md` does not exist in a legacy feature folder, downstream agents document the absence and proceed without it. This is safe — not all features require explicit ubiquitous-language artifacts.
 
 ## WorkIQ — Microsoft 365 Context
 
