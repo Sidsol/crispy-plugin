@@ -91,8 +91,10 @@ After Yield produces an `implementation-manifest.yaml`, run the implementation a
 @crispy-implement crispy-docs/specs/003-graphql-support/ mode:fast_mode   # skip the test-author sub-agent
 ```
 
-`crispy-implement` walks the slice graph from `outline.md` and drives a TDD pair per slice:
+`crispy-implement` walks the slice graph from the `implementation-manifest.yaml` and drives a TDD pair per slice:
 **test-author** → **implementer** → **spec-review** → **code-review**, then runs build/lint/tests between slices.
+
+Each slice carries an `automation: HITL | AFK` classification. In autopilot or fleet mode, HITL (human-in-the-loop) slices pause for user confirmation before proceeding, ensuring safety-critical changes receive explicit human review. AFK (away-from-keyboard) slices proceed automatically.
 
 ### Public Skills
 

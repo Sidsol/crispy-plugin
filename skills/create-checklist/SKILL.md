@@ -40,6 +40,8 @@ Generate a `checklist.md` with quality gates aligned to the CRISPY methodology. 
 - [ ] Slice dependencies are mapped and ordered correctly
 - [ ] Context management boundaries are defined
 - [ ] No slice requires more than one focused session
+- [ ] Every slice includes `automation: HITL | AFK` and `automation_reason`
+- [ ] Automation classifications agree between `outline.md` and `implementation-manifest.yaml`
 
 ### 📋 S — Tactical Plan
 - [ ] Every change references a specific file path

@@ -51,6 +51,7 @@ Read ALL artifacts from the feature folder:
 - [ ] **Vertical slices are end-to-end**: each phase in outline.md touches all necessary layers
 - [ ] **Plan has file-level detail**: every task in tasks.md references specific file paths
 - [ ] **Context will be fresh**: outline.md includes context reset notes between phases
+- [ ] **Automation classification present**: every slice in outline.md includes `automation: HITL | AFK` and `automation_reason` in both the prose metadata and the machine-readable YAML graph
 
 ### 4. Pre-Implementation Readiness
 - Verify the implementation base branch/current branch is identified in each affected repo.
@@ -112,7 +113,7 @@ Read ALL artifacts from the feature folder:
 
 After validation passes, write a machine-readable manifest at `crispy-docs/specs/NNN-feature-name/implementation-manifest.yaml` that `crispy-implement` (and autopilot/fleet runners) consume.
 
-**Process:** before writing the manifest, read the fenced YAML blocks from `outline.md` ("Slice Dependency Graph (Machine-Readable)") and `plan.md` ("Task Graph (Machine-Readable)") and copy them **verbatim** into the manifest under `slice_graph` and `task_graph`. Also read `review-gates.yaml` and copy the `gates` map into `review_gates`. If any of these source blocks is missing or unparsable, do NOT write the manifest — set `ready: false` with a blocker naming the missing/unparsable block.
+**Process:** before writing the manifest, read the fenced YAML blocks from `outline.md` ("Slice Dependency Graph (Machine-Readable)") and `plan.md` ("Task Graph (Machine-Readable)") and copy them **verbatim** into the manifest under `slice_graph` and `task_graph`. Also read `review-gates.yaml` and copy the `gates` map into `review_gates`. Validate that every slice includes the required fields: `id`, `name`, `depends_on`, `parallelizable`, `automation` (HITL or AFK), `automation_reason`, and `checkpoint_criteria_count`. If any slice is missing `automation` or `automation_reason`, treat this as a **blocker** — newly generated outlines must include these fields; legacy manifests from before this schema extension are permitted but new ones are not. If any of these source blocks is missing or unparsable, do NOT write the manifest — set `ready: false` with a blocker naming the missing/unparsable block.
 
 ```yaml
 feature: <name>
@@ -127,7 +128,15 @@ artifacts:
   contracts_dir: contracts/  # or null
 slice_graph:
   # Verbatim copy of the yaml block from outline.md "Slice Dependency Graph (Machine-Readable)"
-  slices: [ ... ]
+  # REQUIRED fields per slice: id, name, depends_on, parallelizable, automation, automation_reason, checkpoint_criteria_count
+  slices:
+    - id: 1
+      name: <name>
+      depends_on: []
+      parallelizable: false
+      automation: HITL | AFK
+      automation_reason: "<one-sentence justification>"
+      checkpoint_criteria_count: <n>
 task_graph:
   # Verbatim copy of the yaml block from plan.md "Task Graph (Machine-Readable)"
   - id: TASK-001

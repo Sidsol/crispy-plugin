@@ -28,6 +28,8 @@
 
 **Behavior ordering (L3):** Organize tasks by distinct behaviors within each phase. Complete each behavior's tests and implementation before starting the next behavior. Avoid horizontal slicing (e.g., "all tests first, all implementations later").
 
+**Schema consistency (L4):** Every phase in `outline.md` must include `automation: HITL | AFK` and `automation_reason`. Yield validates these fields before writing `implementation-manifest.yaml`. Implement pauses before HITL phases in autopilot/fleet mode.
+
 ---
 
 ## Phase 1: Setup & Infrastructure
