@@ -17,22 +17,22 @@ $fullCommand = "$Command $Args".Trim()
 # Define dangerous command patterns
 $dangerousPatterns = @(
     # Git destructive operations
-    @{ Pattern = 'git\s+push'; Description = 'git push (force-pushes branch state to remote)' },
-    @{ Pattern = 'git\s+reset\s+--hard'; Description = 'git reset --hard (discards uncommitted work)' },
-    @{ Pattern = 'git\s+clean'; Description = 'git clean (deletes untracked files)' },
-    @{ Pattern = 'git\s+stash\s+drop'; Description = 'git stash drop (permanently deletes stashed changes)' },
-    @{ Pattern = 'git\s+stash\s+clear'; Description = 'git stash clear (deletes all stashes)' },
-    @{ Pattern = 'git\s+branch\s+-[Dd]'; Description = 'git branch -D/-d (deletes branches)' },
-    @{ Pattern = 'git\s+remote\s+remove'; Description = 'git remote remove (removes remote configuration)' },
-    @{ Pattern = 'git\s+tag\s+-[Dd]'; Description = 'git tag -d (deletes tags)' },
+    @{ Pattern = '(?i)\bgit\b.*\bpush\b'; Description = 'git push (force-pushes branch state to remote)' },
+    @{ Pattern = '(?i)\bgit\b.*\breset\b.*--hard'; Description = 'git reset --hard (discards uncommitted work)' },
+    @{ Pattern = '(?i)\bgit\b.*\bclean\b'; Description = 'git clean (deletes untracked files)' },
+    @{ Pattern = '(?i)\bgit\b.*\bstash\b.*\bdrop\b'; Description = 'git stash drop (permanently deletes stashed changes)' },
+    @{ Pattern = '(?i)\bgit\b.*\bstash\b.*\bclear\b'; Description = 'git stash clear (deletes all stashes)' },
+    @{ Pattern = '(?i)\bgit\b.*\bbranch\b.*\s-[Dd]\b'; Description = 'git branch -D/-d (deletes branches)' },
+    @{ Pattern = '(?i)\bgit\b.*\bremote\b.*\bremove\b'; Description = 'git remote remove (removes remote configuration)' },
+    @{ Pattern = '(?i)\bgit\b.*\btag\b.*\s-[Dd]\b'; Description = 'git tag -d (deletes tags)' },
     
     # File system destructive operations (cross-platform patterns)
-    @{ Pattern = 'rm\s+-rf'; Description = 'rm -rf (recursive force delete)' },
-    @{ Pattern = 'Remove-Item\s+.*-Recurse.*-Force'; Description = 'Remove-Item -Recurse -Force (recursive force delete)' },
-    @{ Pattern = 'Remove-Item\s+.*-Force.*-Recurse'; Description = 'Remove-Item -Force -Recurse (recursive force delete)' },
-    @{ Pattern = 'rd\s+/s\s+/q'; Description = 'rd /s /q (Windows recursive delete)' },
-    @{ Pattern = 'rmdir\s+/s\s+/q'; Description = 'rmdir /s /q (Windows recursive delete)' },
-    @{ Pattern = 'del\s+/f\s+/s\s+/q'; Description = 'del /f /s /q (Windows forced recursive delete)' }
+    @{ Pattern = '(?i)\brm\s+-[^ \t\r\n]*r[^ \t\r\n]*f|(?i)\brm\s+-[^ \t\r\n]*f[^ \t\r\n]*r'; Description = 'rm -rf/rm -fr (recursive force delete)' },
+    @{ Pattern = '(?i)\bRemove-Item\b.*-Recurse.*-Force'; Description = 'Remove-Item -Recurse -Force (recursive force delete)' },
+    @{ Pattern = '(?i)\bRemove-Item\b.*-Force.*-Recurse'; Description = 'Remove-Item -Force -Recurse (recursive force delete)' },
+    @{ Pattern = '(?i)\brd\s+/s\s+/q'; Description = 'rd /s /q (Windows recursive delete)' },
+    @{ Pattern = '(?i)\brmdir\s+/s\s+/q'; Description = 'rmdir /s /q (Windows recursive delete)' },
+    @{ Pattern = '(?i)\bdel\s+/f\s+/s\s+/q'; Description = 'del /f /s /q (Windows forced recursive delete)' }
 )
 
 # Check if command matches any dangerous pattern

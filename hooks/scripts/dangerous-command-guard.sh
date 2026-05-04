@@ -38,21 +38,21 @@ EOF
 }
 
 # Check for dangerous git operations
-if [[ "$FULL_COMMAND" =~ git[[:space:]]+push ]]; then
+if [[ "$FULL_COMMAND" =~ git.*[[:space:]]push($|[[:space:]]) ]]; then
     block_command "git push (force-pushes branch state to remote)"
-elif [[ "$FULL_COMMAND" =~ git[[:space:]]+reset[[:space:]]+--hard ]]; then
+elif [[ "$FULL_COMMAND" =~ git.*[[:space:]]reset[[:space:]].*--hard ]]; then
     block_command "git reset --hard (discards uncommitted work)"
-elif [[ "$FULL_COMMAND" =~ git[[:space:]]+clean ]]; then
+elif [[ "$FULL_COMMAND" =~ git.*[[:space:]]clean($|[[:space:]]) ]]; then
     block_command "git clean (deletes untracked files)"
-elif [[ "$FULL_COMMAND" =~ git[[:space:]]+stash[[:space:]]+drop ]]; then
+elif [[ "$FULL_COMMAND" =~ git.*[[:space:]]stash[[:space:]].*[[:space:]]drop($|[[:space:]]) ]]; then
     block_command "git stash drop (permanently deletes stashed changes)"
-elif [[ "$FULL_COMMAND" =~ git[[:space:]]+stash[[:space:]]+clear ]]; then
+elif [[ "$FULL_COMMAND" =~ git.*[[:space:]]stash[[:space:]].*[[:space:]]clear($|[[:space:]]) ]]; then
     block_command "git stash clear (deletes all stashes)"
-elif [[ "$FULL_COMMAND" =~ git[[:space:]]+branch[[:space:]]+-[Dd] ]]; then
+elif [[ "$FULL_COMMAND" =~ git.*[[:space:]]branch[[:space:]].*-[Dd]($|[[:space:]]) ]]; then
     block_command "git branch -D/-d (deletes branches)"
-elif [[ "$FULL_COMMAND" =~ git[[:space:]]+remote[[:space:]]+remove ]]; then
+elif [[ "$FULL_COMMAND" =~ git.*[[:space:]]remote[[:space:]].*[[:space:]]remove($|[[:space:]]) ]]; then
     block_command "git remote remove (removes remote configuration)"
-elif [[ "$FULL_COMMAND" =~ git[[:space:]]+tag[[:space:]]+-[Dd] ]]; then
+elif [[ "$FULL_COMMAND" =~ git.*[[:space:]]tag[[:space:]].*-[Dd]($|[[:space:]]) ]]; then
     block_command "git tag -d (deletes tags)"
 # Check for dangerous file operations
 elif [[ "$FULL_COMMAND" =~ rm[[:space:]]+-[^[:space:]]*r[^[:space:]]*f ]]; then
