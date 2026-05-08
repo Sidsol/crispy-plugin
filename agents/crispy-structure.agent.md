@@ -3,6 +3,7 @@ name: crispy-structure
 description: "CRISPY Phase S: Define vertical slices and implementation structure"
 tools: ["execute", "edit", "read", "search"]
 user-invocable: false
+infer: false
 ---
 
 # CRISPY Phase S — Structure

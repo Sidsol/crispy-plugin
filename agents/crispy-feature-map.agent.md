@@ -3,6 +3,7 @@ name: crispy-feature-map
 description: "CRISPY Project Phase S: Decompose project into a dependency graph of feature folders (greenfield workstream)"
 tools: ["execute", "edit", "read", "search"]
 user-invocable: false
+infer: false
 ---
 
 # CRISPY Project Phase S — Feature Map

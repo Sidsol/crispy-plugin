@@ -3,6 +3,7 @@ name: crispy-yield
 description: "CRISPY Phase Y: Pre-implementation validation and checklist generation"
 tools: ["execute", "edit", "read", "search"]
 user-invocable: false
+infer: false
 ---
 
 # CRISPY Phase Y — Yield

@@ -163,14 +163,14 @@ In autopilot:
 
 ### Using with `/fleet`
 
-CRISPY has its own parallel execution (`mode:fleet` on `crispy-implement`) that is distinct from Copilot CLI's native `/fleet` command:
+CRISPY has its own parallel execution (`mode:fleet` on `crispy-implement`, with `autopilot_fleet` as the auto-recommended composite mode) that is **layered above** Copilot CLI's native `/fleet` command — it is not a delegation. See [SUBAGENTS.md §5.3 Fleet Identity](SUBAGENTS.md#53-fleet-identity-crispy-modefleet-vs-copilot-cli-fleet) for the full identity decision and the three behaviors CRISPY borrows from the runtime Fleet pattern (changelog 82 documents the runtime Fleet agent; changelog 73 documents the Task-tool `MULTI_TURN_AGENTS` semantics CRISPY relies on).
 
-| Feature | `crispy-implement mode:fleet` | Copilot CLI `/fleet` |
-|:--------|:------------------------------|:---------------------|
-| Task splitting | DAG-aware from slice dependency graph | AI auto-splits from prompt |
-| File isolation | `git worktree` per slice (no silent overwrites) | None (last writer wins) |
-| Conflict detection | Pre-wave file-set check + post-wave diff verification | None |
-| Rollback | Per-slice `git reset --hard` | None |
+| Aspect | CRISPY `mode:fleet` (and `autopilot_fleet`) | Copilot CLI `/fleet` |
+|:--|:--|:--|
+| Spawn semantics | DAG-aware from slice dependency graph; one Task-tool background spawn per slice in a wave (changelog 73 `MULTI_TURN_AGENTS`) | AI auto-splits from prompt; runtime-managed parallel sub-agent fan-out (changelog 82) |
+| Worktree handling | `git worktree` per slice via `git-worktree-isolation` skill — no silent overwrites; per-slice branch `crispy/<feature-id>/slice-<N>` | None; sub-agents share the working tree (last writer wins) |
+| Summary aggregation | Per-wave summary banner (B-3) merging `crispy-result` blocks from each slice; HITL pauses surface explicitly | Runtime aggregation; subagent thinking hidden from main timeline (CRISPY borrows this as B-1) |
+| Parallelism guarantees | Pre-wave file-set check + post-wave diff verification; `parallelizable: false` flag on contended same-file tasks | None — relies on prompt-level isolation |
 
 **Recommendation:**
 - Use `@crispy-implement mode:fleet` for slice execution — it has worktree isolation and conflict detection.

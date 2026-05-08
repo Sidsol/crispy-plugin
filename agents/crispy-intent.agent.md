@@ -3,6 +3,7 @@ name: crispy-intent
 description: "CRISPY Phase I: Define architectural intention and design direction"
 tools: ["execute", "edit", "read", "search"]
 user-invocable: false
+infer: false
 ---
 
 # CRISPY Phase I — Intention

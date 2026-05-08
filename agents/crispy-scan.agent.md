@@ -3,6 +3,7 @@ name: crispy-scan
 description: "Scan sibling repositories for cross-repo impact analysis"
 tools: ["execute", "read", "search"]
 user-invocable: false
+infer: false
 ---
 
 # Cross-Repository Impact Scanner

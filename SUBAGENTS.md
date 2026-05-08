@@ -125,6 +125,10 @@ Use **sync** spawning when:
 
 **Never** background a writer whose artifact a sibling sub-agent is about to read.
 
+**UX cue (long-running spawns).** Background sub-agents (and any sync sub-agent whose wall time exceeds 30s) should be accompanied by an orchestrator-side note that the user can press `ctrl+x → b` (Copilot CLI changelog 5) to send the running task to the background and continue interacting. Orchestrators emit this hint once per session when the first long-running spawn occurs.
+
+**Project-workstream conformance.** All project-level orchestrators (`crispy-project`, `crispy-vision`, `crispy-domain-research`, `crispy-feature-map`, `crispy-roadmap`, `crispy-architecture`, `crispy-scaffold`, `crispy-project-yield`) follow the same spawn rules above. Project-orchestrator body text (mode mappings, fleet semantics, `chain: true` autopilot semantics) MUST use canonical vocabulary from §13 — references to runtime Fleet must cite §5.3 *Fleet Identity* rather than re-deriving the layered-above decision per orchestrator. The 7 internal project-workstream agents carry `infer: false` (the public `crispy-project` does not — see [README §Modes](../README.md#modes)).
+
 ---
 
 ## 5. Fan-out Rules
@@ -144,6 +148,18 @@ The researcher fans out to multiple `explore` sub-agents when **areas ≥ 3 OR r
 Each slice in the manifest includes `automation: HITL | AFK` and `automation_reason`. Before starting any `automation: HITL` slice in autopilot or fleet mode, `crispy-implement` pauses and prompts the user for confirmation. `automation: AFK` slices proceed immediately. This ensures safety-critical slices (those touching orchestration, manifest semantics, review gates, blindness rules, or dangerous commands) receive explicit human review before proceeding.
 
 **Loading note:** CRISPY agents are loaded via `~/.copilot/settings.json` + `plugin.json` registration. The runtime also discovers `.github/instructions/*.instructions.md` files in consuming repos. `~/.claude/` is excluded per Copilot CLI changelog 36/70. See [README §Loading Model](../README.md#loading-model) for details.
+
+### 5.3 Fleet Identity (CRISPY `mode:fleet` vs Copilot CLI `/fleet`)
+
+CRISPY's `mode:fleet` is **layered above** the Copilot CLI runtime — it is NOT a delegation to the official Fleet agent. Evidence: `mode:fleet` is referenced 9 times across CRISPY agent and skill source files; the runtime `/fleet` command is referenced 0 times. Migration to runtime-Fleet would lose the `git worktree` isolation and the DAG-aware conflict detection that CRISPY's slice graph provides (changelog 82 documents the runtime Fleet agent; changelog 73 documents the Task-tool `MULTI_TURN_AGENTS` semantics CRISPY relies on).
+
+CRISPY borrows three behaviors from the runtime Fleet pattern without delegating:
+
+- **B-1: hide sub-agent thinking** from the main timeline; surface only `crispy-result` summaries to the orchestrator.
+- **B-2: surface background progress** via `read_agent` when a backgrounded sub-agent emits an interim `crispy-signal` block.
+- **B-3: emit per-wave `task_complete`-style summary** at the end of each fleet wave (slice-completion banner with task counts, durations, and any HITL pauses).
+
+**Project workstream:** the `crispy-project` orchestrator's `chain: true` autopilot path is the **project-workstream** analog of `autopilot_fleet`. It walks the feature DAG and spawns one `crispy.agent.md` per feature (independent features fan out as a feature-fleet). The same layered-above identity decision applies — `crispy-project` runs at the CRISPY layer, never delegates to runtime Fleet, and inherits B-1/B-2/B-3 borrow semantics analogously per project-feature wave.
 
 ---
 

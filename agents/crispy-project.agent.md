@@ -213,6 +213,8 @@ When project Yield returns `status: ok` and `metadata.ready: true`:
 
 ### Autopilot (`chain: true`)
 
+The `chain: true` autopilot path is the **project-workstream analog of `autopilot_fleet`** — see `SUBAGENTS.md` §5.3 *Fleet Identity*. It is layered above the Copilot CLI runtime (NOT a delegation to runtime `/fleet`) and inherits the same B-1/B-2/B-3 borrow semantics per project-feature wave.
+
 Walk the feature DAG from `project-manifest.yaml`'s `feature_graph`:
 
 1. Compute the next wave: features whose `depends_on` are all completed.
@@ -241,6 +243,8 @@ When `@crispy <feature-folder>` is invoked with a path under `crispy-docs/projec
 - Track progress: tell the user which project phase is active and what's next.
 - Handle interruptions: re-spawn the affected phase agent rather than patching artifacts.
 - Failure handling per §8 — retry once, then surface; never silently fall back.
+- **Auto Mode awareness (autopilot).** When the runtime is in Auto Mode (Copilot CLI's `continueOnAutoMode`, changelog 76), the runtime may transparently switch models on rate-limit. CRISPY's project-level `mode: autopilot` is layered above this. Once per project session, after the first phase completes in autopilot, append a one-line reminder to the checkpoint: *"Tip: enable Auto Mode (`continueOnAutoMode`, changelog 76) for resilient long-running greenfield runs."* Track via `review-gates.yaml` field `AutoModeReminderEmitted: true` keyed on `<session_id>` to debounce.
+- **Background-task UX.** `crispy-domain-research` background spawns and `chain: true` feature-fleet waves often exceed 30s. Mention `ctrl+x → b` (changelog 5) in the checkpoint summary when wall time exceeds the 30s threshold, so the user knows they can background the run and continue interacting.
 
 ## WorkIQ — M365 Context
 

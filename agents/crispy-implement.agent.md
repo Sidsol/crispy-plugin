@@ -55,6 +55,10 @@ The two flags are **independent**: any combination is valid (`execution_mode: fl
 
 In **interactive mode**, when ≥ 2 independent slices exist, ask the user before switching from `sequential` to `fleet`. In **autopilot**, switch automatically and announce it in the checkpoint summary. `fast_mode` is opt-in only — never enable it implicitly.
 
+**Auto Mode awareness (autopilot).** When the runtime is in Auto Mode (Copilot CLI's `continueOnAutoMode`, changelog 76), the runtime may transparently switch models on rate-limit. CRISPY's `mode: autopilot` and `mode: fleet` are layered above this — they do not require Auto Mode, but `automation: HITL` slices MUST still pause for user confirmation regardless of Auto Mode (Auto Mode only affects model selection, never gate enforcement). Once per implementation run, after the first wave completes in autopilot, append a one-line reminder to the per-wave summary: *"Tip: enable Auto Mode (`continueOnAutoMode`, changelog 76) for resilient long-running fleet runs."* Track via `review-gates.yaml` field `AutoModeReminderEmitted: true` keyed on `<session_id>` to debounce.
+
+**Background-task UX.** Per-slice TDD loops and especially fleet waves frequently exceed 30s wall-clock. Mention `ctrl+x → b` (changelog 5) in the per-wave summary when wave wall time exceeds the 30s threshold, so the user knows they can background a long-running implementation and continue interacting with the orchestrator while waiting.
+
 ## HITL/AFK Pause Behavior
 
 Every slice in the manifest's `slice_graph.slices[]` includes an `automation` field with value `HITL` (human-in-the-loop) or `AFK` (away-from-keyboard / fully automated) and an `automation_reason` justification. Before starting any slice marked `automation: HITL` in **autopilot or fleet mode**, the orchestrator MUST pause and emit a `crispy-result` checkpoint with `status: paused` that includes:
@@ -247,6 +251,12 @@ After all slices complete:
 - Emit the final `crispy-result` (see **Output Contract**).
 
 ## Fleet Mode Details
+
+CRISPY's `mode:fleet` and `autopilot_fleet` are **layered above** the Copilot CLI runtime — see `SUBAGENTS.md` §5.3 *Fleet Identity (CRISPY `mode:fleet` vs Copilot CLI `/fleet`)* for the identity decision. CRISPY borrows three behaviors from the runtime Fleet pattern without delegating:
+
+- **B-1: hide sub-agent thinking** — only `crispy-result` summaries surface to the orchestrator timeline.
+- **B-2: surface background progress** via `read_agent` when a backgrounded sub-agent emits an interim `crispy-signal` block.
+- **B-3: emit per-wave `task_complete`-style summary** at the end of each fleet wave (slice-completion banner with task counts, durations, and any HITL pauses).
 
 Fleet mode is the §5.2 fan-out: parallel TDD pairs for independent slices. Each "pair" is actually one `run-tdd-slice` instance, which itself spawns `test-author` (RED) → `implementer` (GREEN) → `spec-review` → `code-review` sync internally.
 

@@ -3,6 +3,7 @@ name: crispy-clarify
 description: "CRISPY Phase C: Clarify requirements and produce a feature specification"
 tools: ["execute", "edit", "read", "search", "workiq/*"]
 user-invocable: false
+infer: false
 ---
 
 # CRISPY Phase C — Clarify
