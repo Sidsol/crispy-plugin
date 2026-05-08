@@ -1,0 +1,19 @@
+{
+  "_comment": "Fail-open semantics demonstration: unreachable URL with a fast 100ms timeout. Per contracts/http-hooks.yaml FS-001..FS-006, the runtime should treat this as if the hook had not run (no permissionDecision, no additionalContext, no error surfaced) and emit a WARN log line with hookOutcome: 'http_timeout'.",
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "http",
+        "name": "fail-open-demo",
+        "http": {
+          "url": "https://203.0.113.1:9/never-reachable",
+          "method": "POST",
+          "timeoutMs": 100,
+          "mode": "http-only"
+        },
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

@@ -32,7 +32,12 @@ If `crispy_docs_root` was supplied, use it. Otherwise, walk up from cwd until a 
 
 ### 2. Run the renderer
 
-Invoke `python skills/generate-metrics-report/render.py --root <crispy_docs_root> [--feature <rel>] [--open]`. The renderer:
+Invoke `python skills/generate-metrics-report/render.py --root <crispy_docs_root> [--feature <rel>] [--mode <html-report|status-tree>] [--open]`. The renderer supports two modes:
+
+- `--mode=html-report` (default) — full HTML report with multiplier tables, charts, and per-phase breakdowns. The legacy default behavior described below.
+- `--mode=status-tree` — at-a-glance status pane suitable for the orchestrator's status-pane region (intent §6.12 `{#status-pane}`). Reads `<feature-folder>/.metrics.jsonl` plus parsed `crispy-result` blocks. Output shape: root = orchestrator name; children = phase agents; grandchildren = reviewers; each annotated with start/end time, status, and finding counts in `n/n/n` (high/medium/low) shape. Plain-text or minimal-HTML; no JS.
+
+In `html-report` mode the renderer also:
 
 1. Walks the root for any `.metrics.jsonl` (skipping `reports/`).
 2. Classifies each owning folder as `standalone`, `project`, or `project_feature` by relative path.

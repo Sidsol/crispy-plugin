@@ -644,12 +644,64 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def render_status_tree(root: Path, feature: str | None) -> int:
+    """Status-tree mode (intent §6.12 {#status-pane}).
+
+    Renders an at-a-glance status pane suitable for the orchestrator's status-pane
+    region. Output shape:
+        root              = orchestrator name
+        children          = phase agents
+        grandchildren     = reviewers
+        per-line annotation = start/end time, status, finding counts (high/medium/low)
+
+    Reads <feature-folder>/.metrics.jsonl and any sibling crispy-result captures.
+    """
+    if feature:
+        targets = [(root / feature).resolve()]
+    else:
+        targets = find_metric_dirs(root)
+        targets = [d for d in targets if "reports" not in d.relative_to(root).parts]
+
+    if not targets:
+        print("[crispy-metrics] no metrics found for status-tree", file=sys.stderr)
+        return 0
+
+    for d in targets:
+        rel = d.relative_to(root).as_posix() if d.is_relative_to(root) else d.name
+        cls = classify_folder(rel) or {"kind": "unknown", "feature": d.name}
+        records = read_records(d)
+        if not records:
+            continue
+
+        print(f"\n=== {cls.get('feature', d.name)} ({cls.get('kind', 'unknown')}) ===")
+        # Group by orchestrator → phase agent → reviewer
+        for r in records:
+            agent = r.get("agent", "(unknown)")
+            phase = r.get("phase") or r.get("agent", "(unknown)")
+            ts_start = r.get("ts_start_ms", 0)
+            ts_end = r.get("ts_end_ms", 0)
+            duration_ms = (ts_end - ts_start) if (ts_start and ts_end) else 0
+            status = r.get("status", "?")
+            f = r.get("findings", {}) or {}
+            high = f.get("high", 0)
+            medium = f.get("medium", 0)
+            low = f.get("low", 0)
+            findings_str = f"{high}/{medium}/{low}"
+            print(f"  {agent:30s} status={status:8s} {duration_ms:>6d}ms  findings(h/m/l)={findings_str}")
+
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True,
                     help="Path to the crispy-docs directory.")
     ap.add_argument("--feature", default=None,
                     help="Optional: regenerate just one feature/project (relative path).")
+    ap.add_argument("--mode", default="html-report",
+                    choices=("html-report", "status-tree"),
+                    help="html-report (default): full HTML; "
+                         "status-tree: at-a-glance status pane (intent §6.12 {#status-pane}).")
     ap.add_argument("--open", dest="open_after", action="store_true",
                     help="Open the index in the default browser when done.")
     args = ap.parse_args()
@@ -659,6 +711,9 @@ def main() -> int:
         print(f"[crispy-metrics] ERROR: --root must point to a directory named "
               f"'crispy-docs'; got {root}", file=sys.stderr)
         return 2
+
+    if args.mode == "status-tree":
+        return render_status_tree(root, args.feature)
 
     table = load_multipliers(root)
 

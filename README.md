@@ -117,7 +117,79 @@ CRISPY intentionally exposes only three agents to keep the user-facing picker sm
 | `@crispy-project` | Plan a greenfield multi-feature project. |
 | `@crispy-implement` | Execute a completed feature plan slice-by-slice after Yield. |
 
-All phase agents (`crispy-clarify`, `crispy-research`, `crispy-intent`, etc.) are internal implementation details. They remain installed so the orchestrators can spawn them, but they are hidden from user selection.
+All phase agents (`crispy-clarify`, `crispy-research`, `crispy-intent`, etc.) are internal implementation details. They remain installed so the orchestrators can spawn them, but they are hidden from user selection via `user-invocable: false` AND `infer: false` (the latter prevents heuristic auto-spawn).
+
+**Per-agent MCP attachment.** A custom agent may attach Model Context Protocol servers via an `mcpServers` block in its frontmatter, scoping which MCP capabilities the agent has access to. CRISPY uses this in `agents/crispy-clarify.agent.md` to attach the `workiq` MCP server (Microsoft 365 context for early Clarify research) without granting it to other phase agents that should remain blind to user M365 data:
+
+```yaml
+---
+name: crispy-clarify
+tools: ["execute", "edit", "read", "search", "workiq/*"]
+user-invocable: false
+infer: false
+mcpServers:
+  workiq:
+    description: "Microsoft 365 context (emails, meetings, files) for early Clarify research"
+---
+```
+
+This per-agent scoping is the recommended pattern for any MCP server that should be available to one role but not all roles.
+
+### Path-scoped instructions (`.instructions.md`)
+
+In addition to repo-scoped instructions under `.github/instructions/`, the Copilot CLI runtime also discovers **plugin-shipped instructions** under any directory listed in `plugin.json`'s `instructions` field. CRISPY ships one exemplar at `instructions/crispy-slice.instructions.md`.
+
+Frontmatter schema (per `contracts/instructions-files.yaml`):
+
+| Key | Required? | Description |
+|---|:---:|---|
+| `applyTo` | required | Glob pattern (e.g., `crispy-docs/specs/**/tasks.md`) — the runtime applies the instructions only when the active file matches. |
+| `description` | required | One-liner (≤200 chars) describing what the instructions encode. |
+| `priority` | optional | `low` \| `medium` \| `high` (default `medium`) — resolves ordering when multiple files match. |
+| `model_hint` | optional | `default` \| `high-capability` (advisory) — hints the runtime about model selection for matching files. |
+
+Example (`instructions/crispy-slice.instructions.md`):
+
+```yaml
+---
+applyTo: "crispy-docs/specs/**/tasks.md"
+description: "CRISPY slice-editing reminders for tasks.md files"
+priority: medium
+---
+```
+
+If `plugin.json` omits the `instructions` field, the runtime falls back to discovering `instructions/**/*.instructions.md` automatically.
+
+### Hook delivery channels
+
+CRISPY hooks are registered in `hooks.json` and run as either local script executions (the default) or remote HTTP calls (additive, opt-in).
+
+**Script-based hooks** (default): each entry has a `bash` and/or `powershell` command line. The runtime invokes the script, which may emit either a `permissionDecision` JSON shape on stdout (see below) or signal `deny` via `exit 1`. CRISPY's `dangerous-command-guard.{sh,ps1}` uses the `exit 1` mechanism for backward-compat.
+
+**HTTP hooks** (additive): a hook entry may also carry an `http` block that POSTs the runtime's tool-call payload to a remote URL. The remote service may return a `permissionDecision` JSON to gate the tool call, or `additionalContext` to enrich it. Per `contracts/http-hooks.yaml`:
+
+| Field | Default | Notes |
+|---|---|---|
+| `http.url` | required | Endpoint receiving the JSON POST. |
+| `http.timeoutMs` | `2500` | Per-hook timeout in milliseconds (range 100–30000). On timeout the runtime fails open. |
+| `http.mode` | `http-and-local` | `http-only` skips the script; `http-and-local` runs both and merges decisions. |
+
+**Failure semantics: `timeout-then-fail-open`.** If the HTTP POST times out, returns a non-2xx response, or fails with a network error, the runtime treats the hook as if it had not run (no `permissionDecision`, no `additionalContext`, no error to the agent). A `WARN`-level log line is emitted with `hookOutcome: 'http_timeout'` (or the equivalent failure-mode string). See [`contracts/http-hooks.yaml#failure_semantics`](contracts/http-hooks.yaml) FS-001..FS-006 for the full rule list. Worked example at `hooks/fixtures/http-hook-example.json`; fail-open demonstration at `hooks/fixtures/http-hook-fail-open.json`.
+
+### `permissionDecision` JSON convention
+
+Hook scripts may return a structured decision on stdout instead of (or in addition to) signalling via exit code. The canonical shape:
+
+```json
+{
+  "permissionDecision": "allow" | "deny" | "ask",
+  "reason": "<one-line explanation>"
+}
+```
+
+The runtime parses this JSON when the hook exits 0; an `ask` decision triggers an interactive user prompt with the supplied `reason`. Hooks that exit non-zero (the `dangerous-command-guard.{sh,ps1}` mechanism) are treated as a hard deny without parsing stdout — both mechanisms are valid; `permissionDecision` is more expressive.
+
+CRISPY's active `dangerous-command-guard.{sh,ps1}` retains the `exit 1` mechanism for backward-compat (NFR-001 / NFR-005). The reference example using the `permissionDecision` JSON shape lives at `hooks/scripts/examples/pre-branch-check.{sh,ps1}` — see `hooks/scripts/examples/README.md` for the worked walkthrough.
 
 ### Implementation Agent (post-Yield)
 

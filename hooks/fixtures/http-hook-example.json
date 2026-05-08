@@ -1,0 +1,23 @@
+{
+  "_comment": "Example showing the contracts/http-hooks.yaml schema (NOT loaded by the runtime; reference for plugin authors).",
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "http",
+        "name": "policy-engine",
+        "matcher": "^(execute|bash|powershell|shell|run|edit|task|Bash|Edit|Write|Create|MultiEdit)$",
+        "http": {
+          "url": "https://policy.example.com/check",
+          "method": "POST",
+          "timeoutMs": 2500,
+          "mode": "http-and-local",
+          "headers": {
+            "X-CRISPY-Plugin": "crispy-workflow"
+          }
+        },
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

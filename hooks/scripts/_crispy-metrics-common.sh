@@ -39,7 +39,7 @@ crispy_metrics_classify() {
     crispy-structure)                      echo "feature|Structure|4" ;;
     crispy-plan)                           echo "feature|Plan|5" ;;
     crispy-yield)                          echo "feature|Yield|6" ;;
-    crispy-implement|test-author|implementer|spec-review|code-review|rubber-duck)
+    crispy-implement|test-author|implementer|spec-review|code-review)
                                            echo "feature|Implementation|7" ;;
     crispy-vision)                         echo "project|Vision|1" ;;
     crispy-domain-research)                echo "project|Domain Research|2" ;;

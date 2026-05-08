@@ -33,7 +33,7 @@ function Get-CrispyMetricsClassification {
     '^crispy-structure$'                           { return @{ Workstream='feature'; Phase='Structure';     Order=4 } }
     '^crispy-plan$'                                { return @{ Workstream='feature'; Phase='Plan';          Order=5 } }
     '^crispy-yield$'                               { return @{ Workstream='feature'; Phase='Yield';         Order=6 } }
-    '^(crispy-implement|test-author|implementer|spec-review|code-review|rubber-duck)$' {
+    '^(crispy-implement|test-author|implementer|spec-review|code-review)$' {
       return @{ Workstream='feature'; Phase='Implementation'; Order=7 }
     }
     '^crispy-vision$'                              { return @{ Workstream='project'; Phase='Vision';        Order=1 } }

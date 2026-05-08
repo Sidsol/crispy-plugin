@@ -4,6 +4,9 @@ description: "CRISPY Phase C: Clarify requirements and produce a feature specifi
 tools: ["execute", "edit", "read", "search", "workiq/*"]
 user-invocable: false
 infer: false
+mcpServers:
+  workiq:
+    description: "Microsoft 365 context (emails, meetings, files) for early Clarify research"
 ---
 
 # CRISPY Phase C — Clarify

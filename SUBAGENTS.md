@@ -271,7 +271,7 @@ Timeouts are safety nets for infrastructure failures (hung processes, unresponsi
 
 - ❌ Orchestrator re-doing the work of a sub-agent because it didn't trust the summary.
 - ❌ A phase agent spawning `spec-review` or `code-review` itself (only the orchestrator gates).
-- ❌ Spawning a single legacy `rubber-duck` reviewer at a gate — protocol now requires the **two-stage** `spec-review` then `code-review` pair (§6, §9).
+- ❌ Spawning a single legacy `rubber-duck` reviewer at a gate — protocol now requires the **two-stage** `spec-review` then `code-review` pair (§6, §9). The `rubber-duck` role was removed from the metrics classifier in `_crispy-metrics-common.{sh,ps1}` as part of feature 002 (AMD-001) — there are no remaining spawn sites in the protocol, and references in older artifacts should be migrated to the two-stage pair. The two new role-agent files `agents/spec-review.agent.md` and `agents/code-review.agent.md` (added in feature 002 S6) make the two-stage pair concrete.
 - ❌ Background-spawning a writer whose output is needed in the very next step.
 - ❌ Researcher fan-out sub-agents reading `spec.md` (breaks blindness).
 - ❌ Reviewer using ad-hoc severity words ("nit", "critical", "🚨"). Use the §6 vocabulary.
