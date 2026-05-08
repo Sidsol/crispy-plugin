@@ -8,6 +8,8 @@ The CRISPY framework uses **sub-agents** to keep contexts clean, run independent
 
 ## 1. Roles
 
+CRISPY orchestrators and their orchestration modes are documented in [README §Modes](../README.md#modes). This section defines the role table.
+
 | Role | Who spawns | Concurrency | Purpose |
 |---|---|---|---|
 | **Orchestrator** | User | n/a | `crispy` (planning) and `crispy-implement` (execution). Owns the workflow, fans out work. |
@@ -103,6 +105,10 @@ Rules:
 
 **Streaming assumption:** Signals are useful only when the caller can observe the sub-agent's partial output mid-stream. This requires the sub-agent to be spawned **sync** and the runtime to support incremental output reading. If the runtime delivers the sub-agent's entire message as a single block (no streaming), signals collapse to no-ops — the caller will see them only after the final `crispy-result`, at which point the optimization window has closed. Every signal-dependent workflow MUST define a synchronous fallback path (per the rule above) so the workflow completes correctly regardless of streaming support.
 
+### Forward-Compatibility Reservation
+
+The `crispy-result` fence label is reserved by CRISPY and SHALL NOT be renamed. Any runtime `task_complete`-style summary is a separate, wire-level artifact emitted at the protocol layer; whether (and how) it interacts with message-body content is empirically variable and outside CRISPY's control. The literal label `crispy-result` (not `task_complete` or any other reserved word) is preserved precisely so that a future runtime version that begins sniffing message bodies for completion shapes cannot collide with the fence label by accident.
+
 ---
 
 ## 4. Background vs Sync
@@ -136,6 +142,8 @@ The researcher fans out to multiple `explore` sub-agents when **areas ≥ 3 OR r
 `crispy-implement` reads the slice dependency graph from the `implementation-manifest.yaml`. When **≥ 2 slices have no pending dependencies**, it recommends `autopilot_fleet`. In non-autopilot mode it asks the user; in autopilot it proceeds with the fleet.
 
 Each slice in the manifest includes `automation: HITL | AFK` and `automation_reason`. Before starting any `automation: HITL` slice in autopilot or fleet mode, `crispy-implement` pauses and prompts the user for confirmation. `automation: AFK` slices proceed immediately. This ensures safety-critical slices (those touching orchestration, manifest semantics, review gates, blindness rules, or dangerous commands) receive explicit human review before proceeding.
+
+**Loading note:** CRISPY agents are loaded via `~/.copilot/settings.json` + `plugin.json` registration. The runtime also discovers `.github/instructions/*.instructions.md` files in consuming repos. `~/.claude/` is excluded per Copilot CLI changelog 36/70. See [README §Loading Model](../README.md#loading-model) for details.
 
 ---
 
@@ -200,17 +208,46 @@ Timeouts are safety nets for infrastructure failures (hung processes, unresponsi
 
 ## 9. Spawn Sites (Reference)
 
-| Site | Caller | Mode | Sub-agent | Trigger |
-|---|---|---|---|---|
-| Background research | `crispy` | background | `crispy-research` | Area identified during Clarify |
-| Internal area split | `crispy-research` | parallel | `explore` × N | areas ≥ 3 OR repos ≥ 2 |
-| Intent review gate | `crispy` | sync | `spec-review` then `code-review` | After `intent.md` written |
-| Plan review gate | `crispy` | sync | `spec-review` then `code-review` | After `plan.md` + `tasks.md` written |
-| Cross-repo scan | `crispy` | sync | `crispy-scan` | During Intent (multi-repo mode) |
-| Workspace setup | `crispy` | sync (skill) | `create-workspace` | After Intent confirms multiple affected repos |
-| Slice implementation | `crispy-implement` | sync per slice (or fleet) | `git-worktree-isolation` skill (fleet) → `test-author` (RED verified) → `implementer` (GREEN verified) → `spec-review` → `code-review` | Each slice in `outline.md` |
-| Finish implementation branch | `crispy-implement` | sync (skill) | `finish-branch` | After last slice succeeds |
-| Slice fleet | `crispy-implement` | parallel | one TDD quad per independent slice (test-author → implementer → spec-review → code-review) | ≥ 2 slices with no pending deps |
+| Site | Caller | Mode | Sub-agent | Trigger | Runtime primitive |
+|---|---|---|---|---|---|
+| 1. `crispy` → `crispy-clarify` | `crispy` | sync | `crispy-clarify` | Phase 1 entry | Task tool (sync) |
+| 2. Background research | `crispy` | background | `crispy-research` | Area identified during Clarify | Task tool (background) [^1] |
+| 3. Research sync fallback | `crispy` | sync | `crispy-research` | Signal never fired | Task tool (sync) |
+| 4. `crispy` → `crispy-intent` | `crispy` | sync | `crispy-intent` | Phase 3 entry | Task tool (sync) |
+| 5. Intent review gate | `crispy` | sync | `spec-review` then `code-review` | After `intent.md` written | Task tool (sync) × 2 |
+| 6. Cross-repo scan | `crispy` | sync | `crispy-scan` | During Intent (multi-repo mode) | Read Agent tool [^1] |
+| 7. Workspace setup | `crispy` | sync (skill) | `create-workspace` | After Intent confirms multiple affected repos | n/a (sync prose) |
+| 8. `crispy` → `crispy-structure` | `crispy` | sync | `crispy-structure` | Phase 4 entry | Task tool (sync) |
+| 9. `crispy` → `crispy-plan` | `crispy` | sync | `crispy-plan` | Phase 5 entry | Task tool (sync) |
+| 10. Plan review gate | `crispy` | sync | `spec-review` then `code-review` | After `plan.md` + `tasks.md` written | Task tool (sync) × 2 |
+| 11. `crispy` → `crispy-yield` | `crispy` | sync | `crispy-yield` | Phase 6 entry | Task tool (sync) |
+| 12. Hand-off to implement | `crispy` | sync | `crispy-implement` | Autopilot `chain: true` | Task tool (sync) |
+| 13. Internal area split | `crispy-research` | parallel | `explore` × N | areas ≥ 3 OR repos ≥ 2 | Task tool (parallel) |
+| 14. Research aggregation | `crispy-research` | sync (skill) | `aggregate-research` | After fan-out fragments return | n/a (sync prose) |
+| 15. `crispy-project` → `crispy-vision` | `crispy-project` | sync | `crispy-vision` | Project Phase 1 entry | Task tool (sync) |
+| 16. Background domain research | `crispy-project` | background | `crispy-domain-research` | `domain_area_identified` signal | Task tool (background) [^1] |
+| 17. Domain research sync fallback | `crispy-project` | sync | `crispy-domain-research` | Signal never fired | Task tool (sync) |
+| 18. `crispy-project` → `crispy-architecture` | `crispy-project` | sync | `crispy-architecture` | Project Phase 3 entry | Task tool (sync) |
+| 19. Architecture review gate | `crispy-project` | sync | `spec-review` then `code-review` | After `architecture.md` written | Task tool (sync) × 2 |
+| 20. Repo scaffold | `crispy-project` | sync | `crispy-scaffold` | After architecture gate passes | Task tool (sync) |
+| 21. `crispy-project` → `crispy-feature-map` | `crispy-project` | sync | `crispy-feature-map` | Project Phase 4 entry | Task tool (sync) |
+| 22. Feature-map review gate | `crispy-project` | sync | `spec-review` then `code-review` | After `feature-map.md` written | Task tool (sync) × 2 |
+| 23. `crispy-project` → `crispy-roadmap` | `crispy-project` | sync | `crispy-roadmap` | Project Phase 5 entry | Task tool (sync) |
+| 24. Roadmap review gate | `crispy-project` | sync | `spec-review` then `code-review` | After `roadmap.md` written | Task tool (sync) × 2 |
+| 25. `crispy-project` → `crispy-project-yield` | `crispy-project` | sync | `crispy-project-yield` | Project Phase 6 entry | Task tool (sync) |
+| 26. Feature hand-off / Feature fleet | `crispy-project` | sync OR parallel | `crispy.agent.md` × N | Autopilot `chain: true` | Task tool (sync OR parallel) |
+| 27. Slice implementation (sequential) | `crispy-implement` | sync per slice | `run-tdd-slice` (skill) | Sequential per-slice loop | n/a (sync prose) |
+| 28. Slice fleet | `crispy-implement` | parallel | `run-tdd-slice` × N | Fleet wave | Task tool (parallel) |
+| 29. TDD: test-author | `run-tdd-slice` | sync | `test-author` | Step 1 of TDD loop | Task tool (sync) |
+| 30. TDD: implementer | `run-tdd-slice` | sync | `implementer` | Step 3 of TDD loop | Task tool (sync) |
+| 31. TDD: spec-review | `run-tdd-slice` | sync | `spec-review` | Step 5 of TDD loop | Task tool (sync) |
+| 32. TDD: code-review | `run-tdd-slice` | sync | `code-review` | Step 5b of TDD loop | Task tool (sync) |
+| 33. Finish implementation branch | `crispy-implement` | sync (skill) | `finish-branch` | After last slice succeeds | n/a (sync prose) |
+| 34. Scaffold delegation | `crispy-scaffold` | sync (skill) | `scaffold-repos` | Always (this agent delegates entirely) | n/a (sync prose) |
+| 35. Worktree cleanup | `finish-branch` | sync (skill) | `git-worktree-isolation` (cleanup) | When `worktree_path` was provided | n/a (sync prose) |
+| 36. Worktree isolation | `crispy-implement` | sync (skill) | `git-worktree-isolation` | Per-slice in fleet mode | n/a (sync prose) |
+
+[^1]: Target primitive — currently emulated by Task tool. See `agent-orchestration.txt` for the runtime's evolving sub-agent invocation surface.
 
 ---
 
@@ -297,3 +334,15 @@ Standalone feature runs (no project parent) are byte-for-byte unchanged.
 - Spawn skill: `skills/spawn-subagent/SKILL.md`
 - Aggregation skill: `skills/aggregate-research/SKILL.md`
 - TDD slice skill: `skills/run-tdd-slice/SKILL.md`
+
+---
+
+## 13. Runtime Mode Mapping
+
+The CRISPY framework operates across three runtime modes and several CRISPY-layer orchestration states. The canonical mode mapping lives in [README §Modes](../README.md#modes); this table shows how CRISPY phases map to runtime modes.
+
+| CRISPY Phase | Runtime Mode | Notes |
+|---|---|---|
+| Planning phases (Clarify, Research, Intent, Structure, Plan, Yield) | `agent` mode (non-interactive) | The orchestrator (`crispy`, `crispy-project`) runs in `agent` mode and spawns phase agents. User invocation determines interactive vs autopilot at the orchestrator level. |
+| Implementation slice execution (sequential) | `agent` mode (non-interactive) | `crispy-implement` spawns TDD quad per slice. |
+| Implementation slice execution (fleet) | `autopilot` mode or `agent` mode (non-interactive) | Fleet waves use Task tool (parallel); each slice runs in its own worktree. The runtime's Fleet agent is NOT invoked — CRISPY's fleet is layered above per §11.3 borrow list. |

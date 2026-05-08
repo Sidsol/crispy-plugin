@@ -124,3 +124,7 @@ After `crispy-plan` writes `plan.md` and `tasks.md`, the orchestrator gates with
 - Trust the `crispy-result` summary; do not re-read the artifact "just to be sure" (§7, §10).
 - Reviewer severity vocabulary is fixed: `high` / `medium` / `low` (§6).
 - Researcher fan-out only when **areas ≥ 3 OR repos ≥ 2** (§5.1). Below threshold the researcher works alone.
+
+## Runtime Primitive Clarification
+
+The `crispy-result` and `crispy-signal` fenced blocks are **CRISPY-layer additions** parsed by the orchestrator, not runtime primitives. They are conventions defined in `SUBAGENTS.md` §3 and §3.1 for structured communication between CRISPY agents. The runtime's sub-agent invocation surface (documented in `agent-orchestration.txt` from the Copilot CLI runtime) defines the wire-level primitives — currently the Task tool (sync / background / parallel), Read Agent tool, and the `/delegate` command. `crispy-result` blocks live above that layer and are invisible to the runtime's protocol parser.

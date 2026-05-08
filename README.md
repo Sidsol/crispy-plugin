@@ -2,13 +2,27 @@
 
 > **Clarify → Research → Intention → Structure → Plan → Yield**
 
-A GitHub Copilot CLI plugin that implements the CRISPY framework for structured, high-quality AI-assisted software development. Produces spec-kit-style artifacts, **coordinates hidden sub-agents across phases** to keep contexts clean and parallelize work, drives slice-by-slice TDD execution after planning is done, and creates focused multi-repo workspaces without planning-time repo-wide branch creation.
+A GitHub Copilot CLI plugin that implements the CRISPY framework for structured, high-quality AI-assisted software development. Produces spec-kit-style artifacts, **coordinates hidden sub-agents across phases** to keep contexts clean and parallelize work, drives slice-by-slice TDD execution after planning is done, and creates focused multi-repo workspaces without planning-time repo-wide branch creation. See the [installation verification checklist](crispy-docs/specs/002-official-cli-conformance/install-checklist.md) for loading-path acceptance tests.
 
 > 🆕 **v0.2 — Sub-Agent Orchestration.** The orchestrator now spawns each phase as its own sub-agent, runs research in the background while clarification continues, gates with two-stage `spec-review` + `code-review` passes, and chains into a new `crispy-implement` agent that drives slice-by-slice TDD using sub-agent pairs. See [`SUBAGENTS.md`](./SUBAGENTS.md) for the protocol.
 >
 > 🆕 **v0.4 — Greenfield Project Workstream.** A second orchestrator, `@crispy-project`, drives the same 6 CRISPY phases at the **project** level: vision → domain-research → architecture (+ local repo scaffold) → feature-map (DAG of features, with >10-slice auto-split) → roadmap (milestones, no dates) → project-checklist/manifest. Each decomposed feature then runs through the existing `@crispy` workflow with **inherited project context** (architecture.md and domain-research.md become MUST-READ for feature-level Intent and Research). Both workstreams remain available standalone. See [`SUBAGENTS.md §11`](./SUBAGENTS.md).
 >
 > 🆕 **v0.5 — Focused Public Surface.** Only the top-level agents are user-invocable: `@crispy`, `@crispy-project`, and `@crispy-implement`. Phase agents and implementation helpers are hidden via `user-invocable: false` per the Agent Skills/custom agents docs. Repo-wide branch setup is deprecated; multi-repo planning now creates workspaces only, while implementation fleet mode uses per-slice worktree branches.
+
+## Modes
+
+CRISPY mode tokens map to official GitHub Copilot CLI modes as follows. The official mode vocabulary is defined in the [GitHub Copilot CLI documentation](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-in-the-command-line) (see `agent-orchestration.txt` from the Copilot CLI runtime for the authoritative source).
+
+| CRISPY token | Closest official mode | Relationship | Notes |
+|---|---|---|---|
+| (default invocation) | Interactive | alias | CRISPY interactive mode is the official Interactive mode. Confirmation prompts, full context. |
+| `autopilot` | Autopilot | layered_above | CRISPY's autopilot adds severity-gated review behavior on top of official Autopilot. `continueOnAutoMode` is recommended for long runs. |
+| `mode:fleet` | Fleet | divergent | CRISPY's fleet is a CRISPY-level concept layered above the runtime; it adds `git worktree` isolation + DAG-aware conflict detection. **NOT** the official Fleet. May borrow Fleet's "hide subagent thinking" semantic. |
+| `autopilot_fleet` | Autopilot + Fleet | layered_above + divergent | Combination shorthand. Inherits both rows above. |
+| `fast_mode` | (n/a) | divergent | Independent of any official mode; CRISPY-specific TDD-loop variant (skips test-author sub-agent). |
+
+**Plan mode:** CRISPY does not currently invoke the official Plan mode explicitly. It could be a future fit for `crispy-clarify` → `crispy-plan` flows.
 
 ## Installation
 
@@ -68,6 +82,30 @@ The orchestrator walks you through all 6 phases:
 4. **Structure** — Vertical slices and checkpoints, produces `outline.md`
 5. **Plan** — File-level tactical plan, produces `plan.md` + `tasks.md` + `contracts/`
 6. **Yield** — Quality gate checklist, produces `checklist.md`
+
+## Loading model
+
+The CRISPY plugin loads into GitHub Copilot CLI via the standard plugin registration mechanism. Understanding the loading paths is critical for troubleshooting and ensuring your custom agents are discoverable.
+
+### Plugin Registration
+
+The plugin manifest (`plugin.json`) is referenced from `~/.copilot/settings.json`. When you run `copilot plugin install <path>`, the CLI adds an entry to this settings file pointing at the plugin's install location. The plugin name is `crispy-workflow` per `plugin.json`.
+
+**Verify installation:** Run `copilot plugin list` to confirm `crispy-workflow` appears in the installed plugins.
+
+### Repo-Scoped Instructions
+
+The runtime automatically discovers `.github/instructions/*.instructions.md` files in any repository where you invoke Copilot CLI. Each instruction file uses frontmatter to scope itself to specific file patterns via the `applyTo` glob field (e.g., `applyTo: "**/*.test.ts"` for test files only).
+
+CRISPY itself does not ship repo-scoped instructions in the plugin directory — these are user-authored per consuming repository. The plugin's shipped agents and skills are always available regardless of which repository you're working in.
+
+### `~/.claude/` Exclusion
+
+Per GitHub Copilot CLI changelog 36 and 70, custom agents placed in `~/.claude/` are **explicitly excluded** from the loading path. The runtime ignores this directory to avoid conflicts with Claude Desktop. CRISPY agents are installed via the plugin manifest and `~/.copilot/settings.json` only; they do NOT use `~/.claude/` for agent discovery.
+
+If you have legacy agent definitions in `~/.claude/`, they will not shadow or interfere with CRISPY. The runtime's precedence order is: (1) plugin-shipped agents from `plugin.json`, (2) repo-scoped instructions from `.github/instructions/`, (3) `~/.claude/` excluded.
+
+**Troubleshooting:** If CRISPY agents are not discoverable after `copilot plugin install`, verify `~/.copilot/settings.json` contains the correct path to `plugin.json` and that `plugin.json` references `agents: "agents/"`. Agents in `~/.claude/` will never be loaded.
 
 ### Public Agents
 
@@ -245,6 +283,16 @@ The orchestrator (`crispy`) is the primary spawner. Phase agents run as sync or 
 | TDD pair × N (slice fleet) | parallel | ≥ 2 slices with no pending deps |
 
 Full protocol — input contract, return shape, severity gating, failure handling, anti-patterns — is in [`SUBAGENTS.md`](./SUBAGENTS.md).
+
+### Out of Scope
+
+CRISPY is a **planning and implementation orchestration plugin** for GitHub Copilot CLI. The following are explicitly out of scope:
+
+- **Direct orchestration of `gh copilot agent`**: CRISPY does not invoke the runtime's experimental `agent` command directly. Phase agents and the TDD implementation pair are spawned via the `task` tool (sync / background / parallel modes).
+- **Autopilot wrapper**: CRISPY's `autopilot` mode is a CRISPY-level orchestration flag that gates reviewer findings and phase confirmations. It is not a wrapper around the runtime's Autopilot agent.
+- **Re-implementing CRISPY's fleet on runtime Fleet**: CRISPY's `mode:fleet` is layered above the runtime and adds `git worktree` isolation + DAG-aware conflict detection. It does not delegate to the official Fleet agent (see [README §Modes](#modes) for the divergence note).
+- **Repo-wide feature-branch creation at planning time**: Deprecated. Multi-repo planning now creates workspaces only. Implementation fleet mode uses per-slice worktree branches.
+- **Calendar-dated project roadmaps**: `crispy-roadmap` sequences features into milestones with parallel waves but does NOT assign calendar dates or time estimates.
 
 ## Plugin Structure
 

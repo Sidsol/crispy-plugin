@@ -41,21 +41,7 @@ You follow `SUBAGENTS.md` verbatim — same prompt contract, same `crispy-result
 
 ## Modes
 
-Detect mode from invocation. Default is **interactive**.
-
-| Trigger                                                              | Mode       |
-|----------------------------------------------------------------------|------------|
-| `@crispy-project autopilot ...`, `mode: autopilot`, runtime context  | Autopilot  |
-| Anything else                                                        | Interactive|
-
-Behavior table is identical to `crispy.agent.md`:
-
-| Concern                  | Interactive                              | Autopilot                                                             |
-|--------------------------|------------------------------------------|-----------------------------------------------------------------------|
-| Phase gates              | Ask user to confirm                       | 3–5 line checkpoint, continue                                         |
-| Reviewer findings        | Surface all severities                    | Only `high` blocks; `medium`/`low` append to `## Reviewer Findings`   |
-| Scaffold                 | Ask before invoking `crispy-scaffold`     | Run non-interactively; failures bubble up as blockers (§8)            |
-| Feature hand-off         | Print one `@crispy …` command per feature | If `chain: true`, walk feature DAG and spawn `crispy.agent.md` per feature (fan out independent ones)|
+See [README §Modes](../README.md#modes) for the canonical CRISPY mode → official Copilot CLI mapping. Default is **interactive**; `@crispy-project autopilot ...` or `mode: autopilot` selects autopilot. Project-specific autopilot behaviors (scaffold runs non-interactively; `chain: true` walks the feature DAG spawning `crispy.agent.md` per feature) inherit from the canonical mode semantics in the README.
 
 ## Environment Detection
 

@@ -40,7 +40,11 @@ You do NOT modify `spec.md`, `research.md`, `intent.md`, `outline.md`, or `plan.
 
 ## Modes
 
-`crispy-implement` runs are described by **two independent flags**:
+See [README §Modes](../README.md#modes) for the canonical CRISPY mode → official Copilot CLI mapping. Default is **interactive**; `mode: autopilot` selects autopilot. Per-slice execution knobs (`execution_mode`, `fast_mode`) are documented under **Slice Execution Flags** below.
+
+## Slice Execution Flags
+
+`crispy-implement` runs are described by **two independent flags** that are orthogonal to the canonical mode in the README:
 
 | Flag | Values | Default | Notes |
 |---|---|---|---|
@@ -51,7 +55,7 @@ The two flags are **independent**: any combination is valid (`execution_mode: fl
 
 In **interactive mode**, when ≥ 2 independent slices exist, ask the user before switching from `sequential` to `fleet`. In **autopilot**, switch automatically and announce it in the checkpoint summary. `fast_mode` is opt-in only — never enable it implicitly.
 
-### HITL/AFK Pause Behavior
+## HITL/AFK Pause Behavior
 
 Every slice in the manifest's `slice_graph.slices[]` includes an `automation` field with value `HITL` (human-in-the-loop) or `AFK` (away-from-keyboard / fully automated) and an `automation_reason` justification. Before starting any slice marked `automation: HITL` in **autopilot or fleet mode**, the orchestrator MUST pause and emit a `crispy-result` checkpoint with `status: paused` that includes:
 
@@ -63,7 +67,7 @@ After the user confirms, proceed with the slice. In **interactive mode**, HITL s
 
 Legacy manifests without `automation` fields are not silently reinterpreted as `AFK` — they are rejected as schema-incomplete. This ensures newly generated features enforce the safety gate explicitly.
 
-### No Horizontal Slicing (L3)
+## No Horizontal Slicing (L3)
 
 Both `sequential` and `fleet` modes MUST enforce behavior-by-behavior execution within each slice worker: one behavior through RED → GREEN → review before the next behavior begins. Fleet mode permits independent slices to run in parallel but FORBIDS batching "all tests first, all implementations later" inside any slice worker. This constraint is passed through to `run-tdd-slice`, which decomposes multi-behavior slices into behavior checkpoints and constrains `test-author`, `implementer`, and reviewers to current-behavior boundaries only.
 

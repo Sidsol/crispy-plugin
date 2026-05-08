@@ -28,23 +28,7 @@ When invoked, greet the user and briefly explain:
 
 ## Modes
 
-Detect the run mode from the user's invocation. Default is **interactive**.
-
-| Trigger | Mode |
-|---|---|
-| `@crispy autopilot ...`, `mode: autopilot`, or runtime context flags it | **Autopilot** |
-| Anything else | **Interactive** |
-
-Behavior table:
-
-| Concern | Interactive | Autopilot |
-|---|---|---|
-| Phase gates | Ask the user to confirm before continuing | Emit a 3–5 line checkpoint summary (artifact path, key decisions, open risks) and continue. User can interrupt at any time. |
-| Reviewer findings (`spec-review` + `code-review`) | Surface **all** severities (high/medium/low) for user confirmation | Only `severity: high` blocks. `medium`/`low` are appended to the artifact's `## Reviewer Findings` section and the workflow continues (`SUBAGENTS.md` §6). |
-| Workspace setup | Ask before creating/opening a multi-root workspace | After Intent confirms affected repos (multi-repo only), create/open a focused VS Code workspace non-interactively. CRISPY no longer creates repo-wide feature branches during planning. |
-| Implementation hand-off | Tell the user to run `@crispy-implement` | Same — unless invoked with `chain: true`, in which case spawn `crispy-implement` directly after Yield. |
-
-Record the active mode and re-use it for every spawn decision below.
+See [README §Modes](../README.md#modes) for the canonical CRISPY mode → official Copilot CLI mapping. Default is **interactive**; `@crispy autopilot ...` or `mode: autopilot` selects autopilot. Record the active mode and re-use it for every spawn decision below.
 
 ## Environment Detection
 
