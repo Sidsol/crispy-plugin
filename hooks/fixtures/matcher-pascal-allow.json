@@ -1,0 +1,12 @@
+{
+  "event": "preToolUse",
+  "tool": "Bash",
+  "payload": {
+    "command": "Bash",
+    "args": "echo hello"
+  },
+  "expected": {
+    "exit": 0,
+    "description": "PascalCase tool name (runtime-canonical) hits both layers; safe args → exit 0"
+  }
+}

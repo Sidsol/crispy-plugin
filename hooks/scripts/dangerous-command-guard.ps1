@@ -1,5 +1,13 @@
 # Dangerous Command Guard (PowerShell)
 # Blocks destructive git and file operations in CRISPY CLI pre-tool hooks
+#
+# Two-layer guard (per feature 002, AMD-003):
+#   Layer 1 (optimization): preToolUse.matcher in hooks.json filters by tool name
+#                            before this script is invoked.
+#   Layer 2 (correctness floor, this script): in-script allowlist short-circuits
+#                            to "allow" for any tool name not in the mutating-tool
+#                            allowlist, ensuring guarantees on runtimes that do
+#                            not honor the matcher field.
 
 param(
     [Parameter(Mandatory=$true)]
@@ -10,6 +18,17 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+# --- Layer 2: in-script mutating-tool allowlist ---
+# 12 tool tokens that may invoke shell or filesystem mutation.
+# If the runtime-passed tool name is not in this list, decline to decide (exit 0).
+# This list MUST stay in lockstep with the matcher regex in hooks.json
+# (per feature 002 R-008 lockstep guard).
+$ALLOWLIST = @('Bash','bash','Edit','edit','Write','Create','MultiEdit','execute','powershell','shell','run','task')
+if ($ALLOWLIST -notcontains $Command) {
+    # Tool is not a mutating tool — allow without inspecting payload.
+    exit 0
+}
 
 # Combine command and args for pattern matching
 $fullCommand = "$Command $Args".Trim()

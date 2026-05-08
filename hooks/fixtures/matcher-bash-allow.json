@@ -1,0 +1,12 @@
+{
+  "event": "preToolUse",
+  "tool": "bash",
+  "payload": {
+    "command": "bash",
+    "args": "ls -la"
+  },
+  "expected": {
+    "exit": 0,
+    "description": "Layer 1 matcher hits, Layer 2 allowlist hits, regex block runs and finds nothing dangerous → exit 0"
+  }
+}

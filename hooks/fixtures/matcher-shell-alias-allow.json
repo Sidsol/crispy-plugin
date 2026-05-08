@@ -1,0 +1,12 @@
+{
+  "event": "preToolUse",
+  "tool": "shell",
+  "payload": {
+    "command": "shell",
+    "args": "pwd"
+  },
+  "expected": {
+    "exit": 0,
+    "description": "Shell-alias tool name hits both layers; safe args → exit 0"
+  }
+}

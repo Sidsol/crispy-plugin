@@ -1,0 +1,12 @@
+{
+  "event": "preToolUse",
+  "tool": "view",
+  "payload": {
+    "command": "view",
+    "args": "some/file.md"
+  },
+  "expected": {
+    "exit": 0,
+    "description": "Layer 1 matcher does NOT match 'view'; runtime would skip the hook entirely. If the script is invoked anyway (e.g., direct fixture replay bypassing matcher), Layer 2 allowlist also rejects → silent exit 0"
+  }
+}
