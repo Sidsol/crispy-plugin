@@ -2,7 +2,7 @@
 name: explore
 description: Blind read-only exploration of a target source area; emits findings to an opaque temp path.
 user-invocable: false
-infer: false
+disable-model-invocation: true
 tools: ["execute", "read", "search"]
 ---
 

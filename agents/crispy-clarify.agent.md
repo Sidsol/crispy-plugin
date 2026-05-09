@@ -3,7 +3,7 @@ name: crispy-clarify
 description: "CRISPY Phase C: Clarify requirements and produce a feature specification"
 tools: ["execute", "edit", "read", "search", "workiq/*"]
 user-invocable: false
-infer: false
+disable-model-invocation: true
 mcpServers:
   workiq:
     description: "Microsoft 365 context (emails, meetings, files) for early Clarify research"

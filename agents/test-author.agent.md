@@ -2,7 +2,7 @@
 name: test-author
 description: Writes failing tests/fixtures for one slice before any implementation lands.
 user-invocable: false
-infer: false
+disable-model-invocation: true
 tools: ["execute", "edit", "read", "search"]
 ---
 

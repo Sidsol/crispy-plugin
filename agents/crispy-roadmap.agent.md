@@ -3,7 +3,7 @@ name: crispy-roadmap
 description: "CRISPY Project Phase P: Sequence features into milestones (greenfield workstream, no calendar dates)"
 tools: ["execute", "edit", "read", "search"]
 user-invocable: false
-infer: false
+disable-model-invocation: true
 ---
 
 # CRISPY Project Phase P — Roadmap

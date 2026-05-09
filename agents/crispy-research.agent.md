@@ -3,7 +3,7 @@ name: crispy-research
 description: "CRISPY Phase R: Blind research of existing codebase"
 tools: ["execute", "edit", "read", "search", "web", "workiq/*"]
 user-invocable: false
-infer: false
+disable-model-invocation: true
 ---
 
 # CRISPY Phase R — Research (Blind)

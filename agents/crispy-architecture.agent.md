@@ -3,7 +3,7 @@ name: crispy-architecture
 description: "CRISPY Project Phase I: Define system architecture, tech stack, and repo layout for greenfield projects"
 tools: ["execute", "edit", "read", "search"]
 user-invocable: false
-infer: false
+disable-model-invocation: true
 ---
 
 # CRISPY Project Phase I — Architecture

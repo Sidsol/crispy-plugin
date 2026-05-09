@@ -2,7 +2,7 @@
 name: code-review
 description: Stage-2 reviewer — verifies a diff/artifact meets style, safety, and contract conformance.
 user-invocable: false
-infer: false
+disable-model-invocation: true
 tools: ["read", "search"]
 ---
 

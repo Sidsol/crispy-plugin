@@ -3,7 +3,7 @@ name: crispy-plan
 description: "CRISPY Phase P: Create tactical implementation plan with file-level detail"
 tools: ["execute", "edit", "read", "search"]
 user-invocable: false
-infer: false
+disable-model-invocation: true
 ---
 
 # CRISPY Phase P — Plan

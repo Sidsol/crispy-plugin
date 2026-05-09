@@ -2,7 +2,7 @@
 name: implementer
 description: Makes failing tests/fixtures pass for one slice. Consumes only what test-author and Plan emitted.
 user-invocable: false
-infer: false
+disable-model-invocation: true
 tools: ["execute", "edit", "read", "search"]
 ---
 

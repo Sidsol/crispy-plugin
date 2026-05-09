@@ -2,7 +2,7 @@
 name: spec-review
 description: Stage-1 reviewer — verifies an artifact aligns with spec/intent semantics before code-review.
 user-invocable: false
-infer: false
+disable-model-invocation: true
 tools: ["read", "search"]
 ---
 

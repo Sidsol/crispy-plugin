@@ -117,7 +117,7 @@ CRISPY intentionally exposes only three agents to keep the user-facing picker sm
 | `@crispy-project` | Plan a greenfield multi-feature project. |
 | `@crispy-implement` | Execute a completed feature plan slice-by-slice after Yield. |
 
-All phase agents (`crispy-clarify`, `crispy-research`, `crispy-intent`, etc.) are internal implementation details. They remain installed so the orchestrators can spawn them, but they are hidden from user selection via `user-invocable: false` AND `infer: false` (the latter prevents heuristic auto-spawn).
+All phase agents (`crispy-clarify`, `crispy-research`, `crispy-intent`, etc.) are internal implementation details. They remain installed so the orchestrators can spawn them, but they are hidden from user selection via `user-invocable: false` AND prevented from runtime auto-inference via `disable-model-invocation: true` (the official replacement for the now-retired `infer: false` key — see [Custom agents configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)).
 
 **Per-agent MCP attachment.** A custom agent may attach Model Context Protocol servers via an `mcpServers` block in its frontmatter, scoping which MCP capabilities the agent has access to. CRISPY uses this in `agents/crispy-clarify.agent.md` to attach the `workiq` MCP server (Microsoft 365 context for early Clarify research) without granting it to other phase agents that should remain blind to user M365 data:
 
@@ -126,7 +126,7 @@ All phase agents (`crispy-clarify`, `crispy-research`, `crispy-intent`, etc.) ar
 name: crispy-clarify
 tools: ["execute", "edit", "read", "search", "workiq/*"]
 user-invocable: false
-infer: false
+disable-model-invocation: true
 mcpServers:
   workiq:
     description: "Microsoft 365 context (emails, meetings, files) for early Clarify research"

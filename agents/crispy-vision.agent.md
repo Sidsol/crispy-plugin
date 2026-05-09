@@ -3,7 +3,7 @@ name: crispy-vision
 description: "CRISPY Project Phase C: Define project vision (greenfield workstream)"
 tools: ["execute", "edit", "read", "search", "workiq/*"]
 user-invocable: false
-infer: false
+disable-model-invocation: true
 ---
 
 # CRISPY Project Phase C — Vision
